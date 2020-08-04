@@ -36,11 +36,11 @@
   },
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
-    "browserify": "^16.5.1",
+    "browserify": "^16.5.2",
     "buffer-equal": "^1.0.0",
     "chai": "*",
     "jshint": "*",
-    "karma": "^5.1.0",
+    "karma": "^5.1.1",
     "karma-browserify": "^7.0.0",
     "karma-chrome-launcher": "^3.1.0",
     "karma-cli": "^2.0.0",
@@ -50,7 +50,7 @@
     "mocha": "*"
   },
   "dependencies": {
-    "acorn": "^7.3.1",
+    "acorn": "^7.4.0",
     "elliptic": "^6.5.3",
     "es6-promise": "^4.2.8",
     "nan": "^2.14.1"
