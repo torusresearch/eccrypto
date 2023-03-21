@@ -202,7 +202,7 @@ var derive = exports.derive = function(privateKeyA, publicKeyB) {
     var keyA = ec.keyFromPrivate(privateKeyA);
     var keyB = ec.keyFromPublic(publicKeyB);
     var Px = keyA.derive(keyB.getPublic());  // BN instance
-    resolve(Buffer.from(Px.toArray()));
+    resolve(Buffer.from(Px.toString(16, 64), 'hex'));
   });
 };
 
