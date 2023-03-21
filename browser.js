@@ -282,7 +282,7 @@ const decrypt = function(privateKey, opts, padding = false) {
     if (!macGood && padding === false) {
       return decrypt(privateKey, opts, true);
     } else if (!macGood && padding === true) {
-      throw new Error("bad MAC after trying padded and unpadded");
+      throw new Error("bad MAC after trying padded");
     }
     return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext).then(function(msg) {
       return Buffer.from(new Uint8Array(msg));
