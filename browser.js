@@ -184,7 +184,30 @@ exports.verify = function(publicKey, msg, sig) {
   });
 };
 
-var derive = exports.derive = function(privateKeyA, publicKeyB) {
+
+var deriveUnpadded = exports.derive = function(privateKeyA, publicKeyB) {
+  return new Promise(function(resolve) {
+    assert(Buffer.isBuffer(privateKeyA), "Bad private key");
+    assert(Buffer.isBuffer(publicKeyB), "Bad public key");
+    assert(privateKeyA.length === 32, "Bad private key");
+    assert(isValidPrivateKey(privateKeyA), "Bad private key");
+    assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key");
+    if (publicKeyB.length === 65)
+    {
+      assert(publicKeyB[0] === 4, "Bad public key");
+    }
+    if (publicKeyB.length === 33)
+    {
+      assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
+    }
+    var keyA = ec.keyFromPrivate(privateKeyA);
+    var keyB = ec.keyFromPublic(publicKeyB);
+    var Px = keyA.derive(keyB.getPublic());  // BN instance
+    resolve(Buffer.from(Px.toArray()));
+  });
+};
+
+var derivePadded = exports.derivePadded = function(privateKeyA, publicKeyB) {
   return new Promise(function(resolve) {
     assert(Buffer.isBuffer(privateKeyA), "Bad private key");
     assert(Buffer.isBuffer(publicKeyB), "Bad public key");
@@ -218,7 +241,7 @@ exports.encrypt = function(publicKeyTo, msg, opts) {
       ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
     }
     ephemPublicKey = getPublic(ephemPrivateKey);
-    resolve(derive(ephemPrivateKey, publicKeyTo));
+    resolve(derivePadded(ephemPrivateKey, publicKeyTo));
   }).then(function(Px) {
     return sha512(Px);
   }).then(function(hash) {
@@ -240,9 +263,10 @@ exports.encrypt = function(publicKeyTo, msg, opts) {
   });
 };
 
-exports.decrypt = function(privateKey, opts) {
+const decrypt = function(privateKey, opts, padding = false) {
   // Tmp variable to save context from flat promises;
   var encryptionKey;
+  const derive = padding ? derivePadded : deriveUnpadded;
   return derive(privateKey, opts.ephemPublicKey).then(function(Px) {
     return sha512(Px);
   }).then(function(hash) {
@@ -255,10 +279,16 @@ exports.decrypt = function(privateKey, opts) {
     ]);
     return hmacSha256Verify(macKey, dataToMac, opts.mac);
   }).then(function(macGood) {
-    assert(macGood, "Bad MAC");
-    return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext);
-  }).then(function(msg) {
-    return Buffer.from(new Uint8Array(msg));
-  });
+    if (!macGood && padding === false) {
+      return decrypt(privateKey, opts, true);
+    } else if (!macGood && padding === true) {
+      throw new Error("bad MAC after trying padded and unpadded");
+    }
+    return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext).then(function(msg) {
+      return Buffer.from(new Uint8Array(msg));
+    });
+  })
 };
+
+exports.decrypt = decrypt;
 

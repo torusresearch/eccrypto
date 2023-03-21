@@ -310,4 +310,22 @@ describe("ECIES", function() {
       });
     });
   });
+
+  it("should successfully decrypt if bad MAC is caused by inconsistent padding in derive", function(done) {
+    var encryption = {
+      ciphertext: Buffer.from('e614aff7db97b01d4b0d5cfb1387b4763cb369f74d743bed95020330d57e3ae91a574bd7ae89da0885eb5f6e332a296f', 'hex'),
+      ephemPublicKey: Buffer.from('04fb0a7c19defeaeeb34defbc47be3c9a4c1de500895c1e1e8ce6d0991595217f8e76c4594968e8c77d83c26f4f1ee496c40c7ac48816a4ee2edf38c550d8916a0', 'hex'),
+      iv: Buffer.from('456f0c039cb2224849082c3d0feebec1', 'hex'),
+      mac: Buffer.from('df7352dcdf2ee10c939276791515340479b526920a155b8ac932a5a26ea4c924', 'hex')
+    };
+    
+    var decryptionKey = Buffer.from('78bb3f8efcd59ebc8c4f0dee865ba10e375869921c62caa5b3b46699504bb280', 'hex');
+
+    eccrypto.decrypt(decryptionKey, encryption)
+    .then(function(msg) {
+      done();
+    }).catch(function(e) {
+      done(e);
+    });
+  })
 });
