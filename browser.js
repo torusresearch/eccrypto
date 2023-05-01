@@ -1,34 +1,27 @@
 "use strict";
 
-var EC = require("elliptic").ec;
-
-var ec = new EC("secp256k1");
-var browserCrypto = global.crypto || global.msCrypto || {};
-var subtle = browserCrypto.subtle || browserCrypto.webkitSubtle;
-
-var nodeCrypto = require("crypto");
-
+const EC = require("elliptic").ec;
+const ec = new EC("secp256k1");
+const browserCrypto = global.crypto || global.msCrypto || {};
+const subtle = browserCrypto.subtle || browserCrypto.webkitSubtle;
+const nodeCrypto = require("crypto");
 const EC_GROUP_ORDER = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex");
 const ZERO32 = Buffer.alloc(32, 0);
-
 function assert(condition, message) {
   if (!condition) {
     throw new Error(message || "Assertion failed");
   }
 }
-
 function isScalar(x) {
   return Buffer.isBuffer(x) && x.length === 32;
 }
-
 function isValidPrivateKey(privateKey) {
   if (!isScalar(privateKey)) {
     return false;
   }
-  return (
-    privateKey.compare(ZERO32) > 0 && // > 0
-    privateKey.compare(EC_GROUP_ORDER) < 0
-  ); // < G
+  return privateKey.compare(ZERO32) > 0 &&
+  // > 0
+  privateKey.compare(EC_GROUP_ORDER) < 0; // < G
 }
 
 // Compare two buffers in constant time to prevent timing attacks.
@@ -36,10 +29,11 @@ function equalConstTime(b1, b2) {
   if (b1.length !== b2.length) {
     return false;
   }
-  var res = 0;
-  for (var i = 0; i < b1.length; i++) {
+  let res = 0;
+  for (let i = 0; i < b1.length; i++) {
     res |= b1[i] ^ b2[i]; // jshint ignore:line
   }
+
   return res === 0;
 }
 
@@ -47,7 +41,7 @@ function equalConstTime(b1, b2) {
 not, since the functions are different and does
 not convert using browserify */
 function randomBytes(size) {
-  var arr = new Uint8Array(size);
+  const arr = new Uint8Array(size);
   if (typeof browserCrypto.getRandomValues === "undefined") {
     return Buffer.from(nodeCrypto.randomBytes(size));
   } else {
@@ -55,40 +49,41 @@ function randomBytes(size) {
   }
   return Buffer.from(arr);
 }
-
 async function sha512(msg) {
   if (subtle) {
     const hash = await subtle.digest("SHA-512", msg);
     const result = new Uint8Array(hash);
     return result;
   }
-  var hash = nodeCrypto.createHash("sha512");
-  var result = hash.update(msg).digest();
+  const hash = nodeCrypto.createHash("sha512");
+  const result = hash.update(msg).digest();
   return new Uint8Array(result);
 }
-
 function getAes(op) {
   return function (iv, key, data) {
     return new Promise(function (resolve) {
       if (subtle) {
-        var importAlgorithm = { name: "AES-CBC" };
-        var keyp = subtle.importKey("raw", key, importAlgorithm, false, [op]);
-        return keyp
-          .then(function (cryptoKey) {
-            var encAlgorithm = { name: "AES-CBC", iv: iv };
-            return subtle[op](encAlgorithm, cryptoKey, data);
-          })
-          .then(function (result) {
-            resolve(Buffer.from(new Uint8Array(result)));
-          });
+        const importAlgorithm = {
+          name: "AES-CBC"
+        };
+        const keyp = subtle.importKey("raw", key, importAlgorithm, false, [op]);
+        return keyp.then(function (cryptoKey) {
+          const encAlgorithm = {
+            name: "AES-CBC",
+            iv: iv
+          };
+          return subtle[op](encAlgorithm, cryptoKey, data);
+        }).then(function (result) {
+          resolve(Buffer.from(new Uint8Array(result)));
+        });
       } else {
         if (op === "encrypt") {
-          var cipher = nodeCrypto.createCipheriv("aes-256-cbc", key, iv);
+          const cipher = nodeCrypto.createCipheriv("aes-256-cbc", key, iv);
           let firstChunk = cipher.update(data);
           let secondChunk = cipher.final();
           resolve(Buffer.concat([firstChunk, secondChunk]));
         } else if (op === "decrypt") {
-          var decipher = nodeCrypto.createDecipheriv("aes-256-cbc", key, iv);
+          const decipher = nodeCrypto.createDecipheriv("aes-256-cbc", key, iv);
           let firstChunk = decipher.update(data);
           let secondChunk = decipher.final();
           resolve(Buffer.concat([firstChunk, secondChunk]));
@@ -97,24 +92,26 @@ function getAes(op) {
     });
   };
 }
-
-var aesCbcEncrypt = getAes("encrypt");
-var aesCbcDecrypt = getAes("decrypt");
-
+const aesCbcEncrypt = getAes("encrypt");
+const aesCbcDecrypt = getAes("decrypt");
 async function hmacSha256Sign(key, msg) {
   if (subtle) {
-    var importAlgorithm = { name: "HMAC", hash: { name: "SHA-256" } };
-    var cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
+    const importAlgorithm = {
+      name: "HMAC",
+      hash: {
+        name: "SHA-256"
+      }
+    };
+    const cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
     const sig = await subtle.sign("HMAC", cryptoKey, msg);
     const result = Buffer.from(new Uint8Array(sig));
     return result;
   }
-  var hmac = nodeCrypto.createHmac("sha256", Buffer.from(key));
+  const hmac = nodeCrypto.createHmac("sha256", Buffer.from(key));
   hmac.update(msg);
-  var result = hmac.digest();
+  const result = hmac.digest();
   return result;
 }
-
 async function hmacSha256Verify(key, msg, sig) {
   const expectedSig = await hmacSha256Sign(key, msg);
   return equalConstTime(expectedSig, sig);
@@ -127,21 +124,20 @@ async function hmacSha256Verify(key, msg, sig) {
  * @function
  */
 exports.generatePrivate = function () {
-  var privateKey = randomBytes(32);
+  let privateKey = randomBytes(32);
   while (!isValidPrivateKey(privateKey)) {
     privateKey = randomBytes(32);
   }
   return privateKey;
 };
-
-var getPublic = (exports.getPublic = function (privateKey) {
+const getPublic = exports.getPublic = function (privateKey) {
   // This function has sync API so we throw an error immediately.
   assert(privateKey.length === 32, "Bad private key");
   assert(isValidPrivateKey(privateKey), "Bad private key");
   // XXX(Kagami): `elliptic.utils.encode` returns array for every
   // encoding except `hex`.
   return Buffer.from(ec.keyFromPrivate(privateKey).getPublic("arr"));
-});
+};
 
 /**
  * Get compressed version of public key.
@@ -166,10 +162,11 @@ exports.sign = function (privateKey, msg) {
     assert(isValidPrivateKey(privateKey), "Bad private key");
     assert(msg.length > 0, "Message should not be empty");
     assert(msg.length <= 32, "Message is too long");
-    resolve(Buffer.from(ec.sign(msg, privateKey, { canonical: true }).toDER()));
+    resolve(Buffer.from(ec.sign(msg, privateKey, {
+      canonical: true
+    }).toDER()));
   });
 };
-
 exports.verify = function (publicKey, msg, sig) {
   return new Promise(function (resolve, reject) {
     assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key");
@@ -188,8 +185,7 @@ exports.verify = function (publicKey, msg, sig) {
     }
   });
 };
-
-var deriveUnpadded = (exports.derive = function (privateKeyA, publicKeyB) {
+const deriveUnpadded = exports.derive = function (privateKeyA, publicKeyB) {
   return new Promise(function (resolve) {
     assert(Buffer.isBuffer(privateKeyA), "Bad private key");
     assert(Buffer.isBuffer(publicKeyB), "Bad public key");
@@ -202,14 +198,13 @@ var deriveUnpadded = (exports.derive = function (privateKeyA, publicKeyB) {
     if (publicKeyB.length === 33) {
       assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
     }
-    var keyA = ec.keyFromPrivate(privateKeyA);
-    var keyB = ec.keyFromPublic(publicKeyB);
-    var Px = keyA.derive(keyB.getPublic()); // BN instance
+    const keyA = ec.keyFromPrivate(privateKeyA);
+    const keyB = ec.keyFromPublic(publicKeyB);
+    const Px = keyA.derive(keyB.getPublic()); // BN instance
     resolve(Buffer.from(Px.toArray()));
   });
-});
-
-var derivePadded = (exports.derivePadded = function (privateKeyA, publicKeyB) {
+};
+const derivePadded = exports.derivePadded = function (privateKeyA, publicKeyB) {
   return new Promise(function (resolve) {
     assert(Buffer.isBuffer(privateKeyA), "Bad private key");
     assert(Buffer.isBuffer(publicKeyB), "Bad public key");
@@ -222,74 +217,65 @@ var derivePadded = (exports.derivePadded = function (privateKeyA, publicKeyB) {
     if (publicKeyB.length === 33) {
       assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
     }
-    var keyA = ec.keyFromPrivate(privateKeyA);
-    var keyB = ec.keyFromPublic(publicKeyB);
-    var Px = keyA.derive(keyB.getPublic()); // BN instance
+    const keyA = ec.keyFromPrivate(privateKeyA);
+    const keyB = ec.keyFromPublic(publicKeyB);
+    const Px = keyA.derive(keyB.getPublic()); // BN instance
     resolve(Buffer.from(Px.toString(16, 64), "hex"));
   });
-});
-
+};
 exports.encrypt = function (publicKeyTo, msg, opts) {
   opts = opts || {};
   // Tmp variables to save context from flat promises;
-  var iv, ephemPublicKey, ciphertext, macKey;
+  let iv, ephemPublicKey, ciphertext, macKey;
   return new Promise(function (resolve) {
-    var ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
+    let ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
     // There is a very unlikely possibility that it is not a valid key
     while (!isValidPrivateKey(ephemPrivateKey)) {
       ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
     }
     ephemPublicKey = getPublic(ephemPrivateKey);
     resolve(deriveUnpadded(ephemPrivateKey, publicKeyTo));
-  })
-    .then(function (Px) {
-      return sha512(Px);
-    })
-    .then(function (hash) {
-      iv = opts.iv || randomBytes(16);
-      var encryptionKey = hash.slice(0, 32);
-      macKey = hash.slice(32);
-      return aesCbcEncrypt(iv, encryptionKey, msg);
-    })
-    .then(function (data) {
-      ciphertext = data;
-      var dataToMac = Buffer.concat([iv, ephemPublicKey, ciphertext]);
-      return hmacSha256Sign(macKey, dataToMac);
-    })
-    .then(function (mac) {
-      return {
-        iv: iv,
-        ephemPublicKey: ephemPublicKey,
-        ciphertext: ciphertext,
-        mac: mac,
-      };
-    });
+  }).then(function (Px) {
+    return sha512(Px);
+  }).then(function (hash) {
+    iv = opts.iv || randomBytes(16);
+    const encryptionKey = hash.slice(0, 32);
+    macKey = hash.slice(32);
+    return aesCbcEncrypt(iv, encryptionKey, msg);
+  }).then(function (data) {
+    ciphertext = data;
+    const dataToMac = Buffer.concat([iv, ephemPublicKey, ciphertext]);
+    return hmacSha256Sign(macKey, dataToMac);
+  }).then(function (mac) {
+    return {
+      iv: iv,
+      ephemPublicKey: ephemPublicKey,
+      ciphertext: ciphertext,
+      mac: mac
+    };
+  });
 };
-
-const decrypt = function (privateKey, opts, padding = false) {
+const decrypt = function (privateKey, opts) {
+  let padding = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   // Tmp variable to save context from flat promises;
-  var encryptionKey;
+  let encryptionKey;
   const derive = padding ? derivePadded : deriveUnpadded;
-  return derive(privateKey, opts.ephemPublicKey)
-    .then(function (Px) {
-      return sha512(Px);
-    })
-    .then(function (hash) {
-      encryptionKey = hash.slice(0, 32);
-      var macKey = hash.slice(32);
-      var dataToMac = Buffer.concat([opts.iv, opts.ephemPublicKey, opts.ciphertext]);
-      return hmacSha256Verify(macKey, dataToMac, opts.mac);
-    })
-    .then(function (macGood) {
-      if (!macGood && padding === false) {
-        return decrypt(privateKey, opts, true);
-      } else if (!macGood && padding === true) {
-        throw new Error("bad MAC after trying padded");
-      }
-      return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext).then(function (msg) {
-        return Buffer.from(new Uint8Array(msg));
-      });
+  return derive(privateKey, opts.ephemPublicKey).then(function (Px) {
+    return sha512(Px);
+  }).then(function (hash) {
+    encryptionKey = hash.slice(0, 32);
+    const macKey = hash.slice(32);
+    const dataToMac = Buffer.concat([opts.iv, opts.ephemPublicKey, opts.ciphertext]);
+    return hmacSha256Verify(macKey, dataToMac, opts.mac);
+  }).then(function (macGood) {
+    if (!macGood && padding === false) {
+      return decrypt(privateKey, opts, true);
+    } else if (!macGood && padding === true) {
+      throw new Error("bad MAC after trying padded");
+    }
+    return aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext).then(function (msg) {
+      return Buffer.from(new Uint8Array(msg));
     });
+  });
 };
-
 exports.decrypt = decrypt;
