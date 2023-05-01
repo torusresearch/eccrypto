@@ -7,12 +7,11 @@
   "types": "types.d.ts",
   "scripts": {
     "build": "babel -d dist browser.js",
-    "test": "ECCRYPTO_NO_FALLBACK=1 mocha && karma start && jshint .",
+    "test": "ECCRYPTO_NO_FALLBACK=1 mocha && karma start",
     "m": "mocha",
     "k": "karma start",
     "kc": "karma start --browsers Chromium",
-    "kf": "karma start --browsers Firefox",
-    "j": "jshint ."
+    "kf": "karma start --browsers Firefox"
   },
   "repository": {
     "type": "git",
@@ -46,12 +45,12 @@
     "buffer-equal": "^1.0.1",
     "chai": "^4.3.7",
     "eslint": "^8.39.0",
-    "jshint": "^2.13.6",
     "karma": "^6.4.1",
     "karma-browserify": "^8.1.0",
     "karma-chrome-launcher": "^3.1.1",
     "karma-cli": "^2.0.0",
     "karma-firefox-launcher": "^2.1.2",
+    "karma-safari-launcher": "^1.0.0",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "mocha": "^10.2.0"
