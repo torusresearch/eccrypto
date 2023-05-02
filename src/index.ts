@@ -233,7 +233,7 @@ export const derivePadded = async function (privateKeyA: Buffer, publicKeyB: Buf
   return Buffer.from(Px.toString(16, 64), "hex");
 };
 
-export const encrypt = async function (publicKeyTo: Buffer, msg: Buffer, opts: { iv?: Buffer; ephemPrivateKey?: Buffer }): Promise<Ecies> {
+export const encrypt = async function (publicKeyTo: Buffer, msg: Buffer, opts?: { iv?: Buffer; ephemPrivateKey?: Buffer }): Promise<Ecies> {
   opts = opts || {};
 
   let ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
