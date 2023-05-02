@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<head>
+  Eccrypto Test
+</head>
+<body>
+  <script src="../dist/eccrypto.umd.min.js"></script>
+  <script>
+    (async () => {
+      const priv = Eccrypto.generatePrivate();
+      const pub = Eccrypto.getPublic(priv);
+      const msg = Eccrypto.generatePrivate();
+      const sig = await Eccrypto.sign(priv, msg);
+      Eccrypto.verify(pub, msg, sig).then(console.log).catch(console.error);
+    })();
+  </script>
+</body>
