@@ -7,6 +7,7 @@
   "types": "./dist/types/index.d.ts",
   "scripts": {
     "build": "torus-scripts build",
+    "release": "torus-scripts release",
     "test": "ECCRYPTO_NO_FALLBACK=1 mocha && karma start",
     "m": "mocha",
     "k": "karma start",
