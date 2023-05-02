@@ -19,11 +19,9 @@ function isValidPrivateKey(privateKey) {
   if (!isScalar(privateKey)) {
     return false;
   }
-  return (
-    privateKey.compare(ZERO32) > 0 &&
-    // > 0
-    privateKey.compare(EC_GROUP_ORDER) < 0
-  ); // < G
+  return privateKey.compare(ZERO32) > 0 &&
+  // > 0
+  privateKey.compare(EC_GROUP_ORDER) < 0; // < G
 }
 
 // Compare two buffers in constant time to prevent timing attacks.
@@ -51,7 +49,6 @@ function randomBytes(size) {
   }
   return Buffer.from(arr);
 }
-
 async function sha512(msg) {
   if (subtle) {
     const hash = await subtle.digest("SHA-512", msg);
@@ -62,17 +59,16 @@ async function sha512(msg) {
   const result = hash.update(msg).digest();
   return new Uint8Array(result);
 }
-
 function getAes(op) {
   return async function (iv, key, data) {
     if (subtle) {
       const importAlgorithm = {
-        name: "AES-CBC",
+        name: "AES-CBC"
       };
       const cryptoKey = await subtle.importKey("raw", key, importAlgorithm, false, [op]);
       const encAlgorithm = {
         name: "AES-CBC",
-        iv: iv,
+        iv: iv
       };
       const result = await subtle[op](encAlgorithm, cryptoKey, data);
       return Buffer.from(new Uint8Array(result));
@@ -91,14 +87,13 @@ function getAes(op) {
 }
 const aesCbcEncrypt = getAes("encrypt");
 const aesCbcDecrypt = getAes("decrypt");
-
 async function hmacSha256Sign(key, msg) {
   if (subtle) {
     const importAlgorithm = {
       name: "HMAC",
       hash: {
-        name: "SHA-256",
-      },
+        name: "SHA-256"
+      }
     };
     const cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
     const sig = await subtle.sign("HMAC", cryptoKey, msg);
@@ -128,15 +123,14 @@ exports.generatePrivate = function () {
   }
   return privateKey;
 };
-
-const getPublic = (exports.getPublic = function (privateKey) {
+const getPublic = exports.getPublic = function (privateKey) {
   // This function has sync API so we throw an error immediately.
   assert(privateKey.length === 32, "Bad private key");
   assert(isValidPrivateKey(privateKey), "Bad private key");
   // XXX(Kagami): `elliptic.utils.encode` returns array for every
   // encoding except `hex`.
   return Buffer.from(ec.keyFromPrivate(privateKey).getPublic("arr"));
-});
+};
 
 /**
  * Get compressed version of public key.
@@ -160,13 +154,9 @@ exports.sign = async function (privateKey, msg) {
   assert(isValidPrivateKey(privateKey), "Bad private key");
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
-  return Buffer.from(
-    ec
-      .sign(msg, privateKey, {
-        canonical: true,
-      })
-      .toDER()
-  );
+  return Buffer.from(ec.sign(msg, privateKey, {
+    canonical: true
+  }).toDER());
 };
 exports.verify = async function (publicKey, msg, sig) {
   assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key");
@@ -184,8 +174,7 @@ exports.verify = async function (publicKey, msg, sig) {
     throw new Error("Bad signature");
   }
 };
-
-const deriveUnpadded = (exports.derive = async function (privateKeyA, publicKeyB) {
+const deriveUnpadded = exports.derive = async function (privateKeyA, publicKeyB) {
   assert(Buffer.isBuffer(privateKeyA), "Bad private key");
   assert(Buffer.isBuffer(publicKeyB), "Bad public key");
   assert(privateKeyA.length === 32, "Bad private key");
@@ -201,9 +190,8 @@ const deriveUnpadded = (exports.derive = async function (privateKeyA, publicKeyB
   const keyB = ec.keyFromPublic(publicKeyB);
   const Px = keyA.derive(keyB.getPublic()); // BN instance
   return Buffer.from(Px.toArray());
-});
-
-const derivePadded = (exports.derivePadded = async function (privateKeyA, publicKeyB) {
+};
+const derivePadded = exports.derivePadded = async function (privateKeyA, publicKeyB) {
   assert(Buffer.isBuffer(privateKeyA), "Bad private key");
   assert(Buffer.isBuffer(publicKeyB), "Bad public key");
   assert(privateKeyA.length === 32, "Bad private key");
@@ -219,13 +207,11 @@ const derivePadded = (exports.derivePadded = async function (privateKeyA, public
   const keyB = ec.keyFromPublic(publicKeyB);
   const Px = keyA.derive(keyB.getPublic()); // BN instance
   return Buffer.from(Px.toString(16, 64), "hex");
-});
-
+};
 exports.encrypt = async function (publicKeyTo, msg, opts) {
   opts = opts || {};
   // Tmp variables to save context from flat promises;
   let iv, ephemPublicKey, ciphertext, macKey;
-
   let ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
   // There is a very unlikely possibility that it is not a valid key
   while (!isValidPrivateKey(ephemPrivateKey)) {
@@ -245,10 +231,9 @@ exports.encrypt = async function (publicKeyTo, msg, opts) {
     iv: iv,
     ephemPublicKey: ephemPublicKey,
     ciphertext: ciphertext,
-    mac: mac,
+    mac: mac
   };
 };
-
 const decrypt = async function (privateKey, opts) {
   let padding = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
   // Tmp variable to save context from flat promises;
@@ -268,5 +253,4 @@ const decrypt = async function (privateKey, opts) {
   const msg = await aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext);
   return Buffer.from(new Uint8Array(msg));
 };
-
 exports.decrypt = decrypt;
