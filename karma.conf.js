@@ -8,12 +8,12 @@ module.exports = function (config) {
     frameworks: ["mocha", "browserify"],
 
     // list of files / patterns to load in the browser
-    files: ["test.js"],
+    files: ["./test/test.js"],
 
     // preprocess matching files before serving them to the browser
     // available preprocessors: https://npmjs.org/browse/keyword/karma-preprocessor
     preprocessors: {
-      "test.js": ["browserify"],
+      "./test/test.js": ["browserify"],
     },
 
     // list of files to exclude
