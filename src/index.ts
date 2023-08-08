@@ -2,7 +2,9 @@ import nodeCrypto from "crypto";
 import { ec as EC } from "elliptic";
 
 const ec = new EC("secp256k1");
-const browserCrypto = global.crypto || global.msCrypto || {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const browserCrypto = global.crypto || (global as any).msCrypto || {};
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const subtle = browserCrypto.subtle || (browserCrypto as any).webkitSubtle;
 
 const EC_GROUP_ORDER = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex");
@@ -122,7 +124,7 @@ async function hmacSha256Sign(key: Buffer, msg: Buffer): Promise<Buffer> {
   const result = hmac.digest();
   return result;
 }
-async function hmacSha256Verify(key, msg, sig) {
+async function hmacSha256Verify(key: Buffer, msg: Buffer, sig: Buffer): Promise<boolean> {
   const expectedSig = await hmacSha256Sign(key, msg);
   return equalConstTime(expectedSig, sig);
 }
@@ -267,7 +269,7 @@ export const decrypt = async function (privateKey: Buffer, opts: Ecies, _padding
   const encryptionKey = hash.slice(0, 32);
   const macKey = hash.slice(32);
   const dataToMac = Buffer.concat([opts.iv, opts.ephemPublicKey, opts.ciphertext]);
-  const macGood = await hmacSha256Verify(macKey, dataToMac, opts.mac);
+  const macGood = await hmacSha256Verify(Buffer.from(macKey), dataToMac, opts.mac);
   if (!macGood && padding === false) {
     return decrypt(privateKey, opts, true);
   } else if (!macGood && padding === true) {
