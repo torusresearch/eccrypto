@@ -1,3 +1,10 @@
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import/no-extraneous-dependencies
+const playwright = require("playwright");
+
+process.env.FIREFOX_BIN = playwright.firefox.executablePath();
+process.env.CHROME_BIN = playwright.chromium.executablePath();
+process.env.WEBKIT_HEADLESS_BIN = playwright.webkit.executablePath();
+
 module.exports = function (config) {
   config.set({
     // base path that will be used to resolve all patterns (eg. files, exclude)
