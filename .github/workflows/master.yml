@@ -1,6 +1,8 @@
 # Run tests
 
-on: push
+on:
+  push:
+    branches: [master]
 
 name: Run Tests
 
