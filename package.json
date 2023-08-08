@@ -1,6 +1,6 @@
 {
   "name": "@toruslabs/eccrypto",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "JavaScript Elliptic curve cryptography library, includes fix to browser.js so that encrypt/decrypt works",
   "main": "./dist/eccrypto.cjs.js",
   "module": "./dist/eccrypto.esm.js",
