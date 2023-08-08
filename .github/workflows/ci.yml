@@ -2,7 +2,7 @@
 
 on: push
 
-name: Run Tests
+name: CI
 
 jobs:
   test:

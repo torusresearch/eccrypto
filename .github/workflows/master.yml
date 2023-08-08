@@ -4,7 +4,7 @@ on:
   push:
     branches: [master]
 
-name: Run Tests
+name: Master
 
 jobs:
   test:
