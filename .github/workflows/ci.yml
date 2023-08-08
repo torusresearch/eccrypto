@@ -2,10 +2,8 @@
 
 on:
   push:
-    branches:
-      - '*'
-    paths-ignore:
-      - 'master/**'
+    branches-ignore:
+      - 'master'
 
 name: CI
 
