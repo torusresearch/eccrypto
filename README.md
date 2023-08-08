@@ -1,4 +1,4 @@
-# eccrypto [![Build Status](https://travis-ci.org/bitchan/eccrypto.svg?branch=master)](https://travis-ci.org/bitchan/eccrypto)
+# eccrypto [![Build Status](https://github.com/torusresearch/eccrypto/workflows/master/badge.svg)](https://github.com/torusresearch/eccrypto/actions)
 
 [![NPM](https://nodei.co/npm/eccrypto.png)](https://www.npmjs.com/package/eccrypto)
 

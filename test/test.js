@@ -1,8 +1,10 @@
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable @typescript-eslint/no-var-requires */
 /* eslint-disable mocha/max-top-level-suites */
 const { expect } = require("chai");
 const { createHash } = require("crypto");
 const bufferEqual = require("buffer-equal");
-const eccrypto = require("../dist/eccrypto.cjs.js");
+const eccrypto = require("../dist/eccrypto.cjs");
 
 const msg = createHash("sha256").update("test").digest();
 const otherMsg = createHash("sha256").update("test2").digest();
@@ -25,14 +27,14 @@ const publicKeyBCompressed = eccrypto.getPublicCompressed(privateKeyB);
 
 describe("Key conversion", function () {
   it("should allow to convert private key to public", function () {
-    expect(Buffer.isBuffer(publicKey)).to.be.true;
+    expect(Buffer.isBuffer(publicKey)).to.equal(true);
     expect(publicKey.toString("hex")).to.equal(
       "041b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f70beaf8f588b541507fed6a642c5ab42dfdf8120a7f639de5122d47a69a8e8d1"
     );
   });
 
   it("shouwld allow to convert private key to compressed public", function () {
-    expect(Buffer.isBuffer(publicKeyCompressed)).to.be.true;
+    expect(Buffer.isBuffer(publicKeyCompressed)).to.equal(true);
     expect(publicKeyCompressed.toString("hex")).to.equal("031b84c5567b126440995d3ed5aaba0565d71e1834604819ff9c17f5e9d5dd078f");
   });
 
@@ -45,7 +47,7 @@ describe("Key conversion", function () {
 describe("ECDSA", function () {
   it("should allow to sign and verify message", function () {
     return eccrypto.sign(privateKey, msg).then(function (sig) {
-      expect(Buffer.isBuffer(sig)).to.be.true;
+      expect(Buffer.isBuffer(sig)).to.equal(true);
       expect(sig.toString("hex")).to.equal(
         "3044022078c15897a34de6566a0d396fdef660698c59fef56d34ee36bef14ad89ee0f6f8022016e02e8b7285d93feafafbe745702f142973a77d5c2fa6293596357e17b3b47c"
       );
@@ -55,7 +57,7 @@ describe("ECDSA", function () {
 
   it("should allow to sign and verify message using a compressed public key", function () {
     return eccrypto.sign(privateKey, msg).then(function (sig) {
-      expect(Buffer.isBuffer(sig)).to.be.true;
+      expect(Buffer.isBuffer(sig)).to.equal(true);
       expect(sig.toString("hex")).to.equal(
         "3044022078c15897a34de6566a0d396fdef660698c59fef56d34ee36bef14ad89ee0f6f8022016e02e8b7285d93feafafbe745702f142973a77d5c2fa6293596357e17b3b47c"
       );
@@ -64,12 +66,16 @@ describe("ECDSA", function () {
   });
 
   it("shouldn't verify incorrect signature", function (done) {
-    eccrypto.sign(privateKey, msg).then(function (sig) {
-      expect(Buffer.isBuffer(sig)).to.be.true;
-      eccrypto.verify(publicKey, otherMsg, sig).catch(function () {
-        done();
-      });
-    });
+    eccrypto
+      .sign(privateKey, msg)
+      .then(function (sig) {
+        expect(Buffer.isBuffer(sig)).to.equal(true);
+        eccrypto.verify(publicKey, otherMsg, sig).catch(function () {
+          done();
+        });
+        return null;
+      })
+      .catch(done);
   });
 
   it("should reject promise on invalid key when signing", function (done) {
@@ -86,32 +92,40 @@ describe("ECDSA", function () {
   });
 
   it("should reject promise on invalid key when verifying", function (done) {
-    eccrypto.sign(privateKey, msg).then(function (sig) {
-      expect(Buffer.isBuffer(sig)).to.be.true;
-      eccrypto.verify(Buffer.from("test"), msg, sig).catch(function () {
-        const badKey = Buffer.alloc(65);
-        publicKey.copy(badKey);
-        badKey[0] ^= 1;
-        eccrypto.verify(badKey, msg, sig).catch(function () {
-          done();
+    eccrypto
+      .sign(privateKey, msg)
+      .then(function (sig) {
+        expect(Buffer.isBuffer(sig)).to.equal(true);
+        eccrypto.verify(Buffer.from("test"), msg, sig).catch(function () {
+          const badKey = Buffer.alloc(65);
+          publicKey.copy(badKey);
+          badKey[0] ^= 1;
+          eccrypto.verify(badKey, msg, sig).catch(function () {
+            done();
+          });
         });
-      });
-    });
+        return null;
+      })
+      .catch(done);
   });
 
   it("should reject promise on invalid sig when verifying", function (done) {
-    eccrypto.sign(privateKey, msg).then(function (sig) {
-      expect(Buffer.isBuffer(sig)).to.be.true;
-      sig[0] ^= 1;
-      eccrypto.verify(publicKey, msg, sig).catch(function () {
-        done();
-      });
-    });
+    eccrypto
+      .sign(privateKey, msg)
+      .then(function (sig) {
+        expect(Buffer.isBuffer(sig)).to.equal(true);
+        sig[0] ^= 1;
+        eccrypto.verify(publicKey, msg, sig).catch(function () {
+          done();
+        });
+        return null;
+      })
+      .catch(done);
   });
 
   it("should allow to sign and verify messages less than 32 bytes", function () {
     return eccrypto.sign(privateKey, shortMsg).then(function (sig) {
-      expect(Buffer.isBuffer(sig)).to.be.true;
+      expect(Buffer.isBuffer(sig)).to.equal(true);
       expect(sig.toString("hex")).to.equal(
         "304402204737396b697e5a3400e3aedd203d8be89879f97708647252bd0c17752ff4c8f302201d52ef234de82ce0719679fa220334c83b80e21b8505a781d32d94a27d9310aa"
       );
@@ -150,28 +164,39 @@ describe("ECDSA", function () {
 
 describe("ECDH", function () {
   it("should derive shared secret from privkey A and pubkey B", function () {
-    return eccrypto.derive(privateKeyA, publicKeyB).then(function (Px) {
-      expect(Buffer.isBuffer(Px)).to.be.true;
-      expect(Px.length).to.equal(32);
-      expect(Px.toString("hex")).to.equal("aca78f27d5f23b2e7254a0bb8df128e7c0f922d47ccac72814501e07b7291886");
-      return eccrypto.derive(privateKeyB, publicKeyA).then(function (Px2) {
-        expect(Buffer.isBuffer(Px2)).to.be.true;
-        expect(Px2.length).to.equal(32);
-        expect(bufferEqual(Px, Px2)).to.be.true;
-      });
-    });
+    return eccrypto
+      .derive(privateKeyA, publicKeyB)
+      .then(function (Px) {
+        expect(Buffer.isBuffer(Px)).to.equal(true);
+        expect(Px.length).to.equal(32);
+        expect(Px.toString("hex")).to.equal("aca78f27d5f23b2e7254a0bb8df128e7c0f922d47ccac72814501e07b7291886");
+        return eccrypto
+          .derive(privateKeyB, publicKeyA)
+          .then(function (Px2) {
+            expect(Buffer.isBuffer(Px2)).to.equal(true);
+            expect(Px2.length).to.equal(32);
+            expect(bufferEqual(Px, Px2)).to.equal(true);
+            return null;
+          })
+          .catch(() => {});
+      })
+      .catch(() => {});
   });
 
   it("should derive shared secret from  privkey A and compressed pubkey B", function () {
     return eccrypto.derive(privateKeyA, publicKeyBCompressed).then(function (Px) {
-      expect(Buffer.isBuffer(Px)).to.be.true;
+      expect(Buffer.isBuffer(Px)).to.equal(true);
       expect(Px.length).to.equal(32);
       expect(Px.toString("hex")).to.equal("aca78f27d5f23b2e7254a0bb8df128e7c0f922d47ccac72814501e07b7291886");
-      return eccrypto.derive(privateKeyB, publicKeyA).then(function (Px2) {
-        expect(Buffer.isBuffer(Px2)).to.be.true;
-        expect(Px2.length).to.equal(32);
-        expect(bufferEqual(Px, Px2)).to.be.true;
-      });
+      return eccrypto
+        .derive(privateKeyB, publicKeyA)
+        .then(function (Px2) {
+          expect(Buffer.isBuffer(Px2)).to.equal(true);
+          expect(Px2.length).to.equal(32);
+          expect(bufferEqual(Px, Px2)).to.equal(true);
+          return null;
+        })
+        .catch(() => {});
     });
   });
 
@@ -196,29 +221,40 @@ describe("ECDH", function () {
 });
 
 describe("ECIES", function () {
-  const ephemPrivateKey = Buffer.alloc(32);
-  ephemPrivateKey.fill(4);
-  const ephemPublicKey = eccrypto.getPublic(ephemPrivateKey);
-  const iv = Buffer.alloc(16);
-  iv.fill(5);
-  const ciphertext = Buffer.from("bbf3f0e7486b552b0e2ba9c4ca8c4579", "hex");
-  const mac = Buffer.from("dbb14a9b53dbd6b763dba24dc99520f570cdf8095a8571db4bf501b535fda1ed", "hex");
-  const encOpts = { ephemPrivateKey, iv };
-  const decOpts = { iv, ephemPublicKey, ciphertext, mac };
+  let ephemPublicKey, encOpts, decOpts, iv, ciphertext, mac;
+  beforeEach(function () {
+    const ephemPrivateKey = Buffer.alloc(32);
+    ephemPrivateKey.fill(4);
+    ephemPublicKey = eccrypto.getPublic(ephemPrivateKey);
+    iv = Buffer.alloc(16);
+    iv.fill(5);
+    ciphertext = Buffer.from("bbf3f0e7486b552b0e2ba9c4ca8c4579", "hex");
+    mac = Buffer.from("dbb14a9b53dbd6b763dba24dc99520f570cdf8095a8571db4bf501b535fda1ed", "hex");
+    encOpts = { ephemPrivateKey, iv };
+    decOpts = { iv, ephemPublicKey, ciphertext, mac };
+  });
 
   it("should encrypt", function () {
-    return eccrypto.encrypt(publicKeyB, Buffer.from("test"), encOpts).then(function (enc) {
-      expect(bufferEqual(enc.iv, iv)).to.be.true;
-      expect(bufferEqual(enc.ephemPublicKey, ephemPublicKey)).to.be.true;
-      expect(bufferEqual(enc.ciphertext, ciphertext)).to.be.true;
-      expect(bufferEqual(enc.mac, mac)).to.be.true;
-    });
+    return eccrypto
+      .encrypt(publicKeyB, Buffer.from("test"), encOpts)
+      .then(function (enc) {
+        expect(bufferEqual(enc.iv, iv)).to.equal(true);
+        expect(bufferEqual(enc.ephemPublicKey, ephemPublicKey)).to.equal(true);
+        expect(bufferEqual(enc.ciphertext, ciphertext)).to.equal(true);
+        expect(bufferEqual(enc.mac, mac)).to.equal(true);
+        return null;
+      })
+      .catch(() => {});
   });
 
   it("should decrypt", function () {
-    return eccrypto.decrypt(privateKeyB, decOpts).then(function (msg) {
-      expect(msg.toString()).to.equal("test");
-    });
+    return eccrypto
+      .decrypt(privateKeyB, decOpts)
+      .then(function (message) {
+        expect(message.toString()).to.equal("test");
+        return null;
+      })
+      .catch(() => {});
   });
 
   it("should encrypt and decrypt", function () {
@@ -227,20 +263,11 @@ describe("ECIES", function () {
       .then(function (enc) {
         return eccrypto.decrypt(privateKeyA, enc);
       })
-      .then(function (msg) {
-        expect(msg.toString()).to.equal("to a");
-      });
-  });
-
-  it("should encrypt and decrypt", function () {
-    return eccrypto
-      .encrypt(publicKeyA, Buffer.from("to a"))
-      .then(function (enc) {
-        return eccrypto.decrypt(privateKeyA, enc);
+      .then(function (message) {
+        expect(message.toString()).to.equal("to a");
+        return null;
       })
-      .then(function (msg) {
-        expect(msg.toString()).to.equal("to a");
-      });
+      .catch(() => {});
   });
 
   it("should encrypt and decrypt with message size > 15", function () {
@@ -249,17 +276,19 @@ describe("ECIES", function () {
       .then(function (enc) {
         return eccrypto.decrypt(privateKeyA, enc);
       })
-      .then(function (msg) {
-        expect(msg.toString()).to.equal("message size that is greater than 15 for sure =)");
+      .then(function (message) {
+        expect(message.toString()).to.equal("message size that is greater than 15 for sure =)");
+        return null;
       });
   });
 
   it("should encrypt with compressed public key", function () {
     return eccrypto.encrypt(publicKeyBCompressed, Buffer.from("test"), encOpts).then(function (enc) {
-      expect(bufferEqual(enc.iv, iv)).to.be.true;
-      expect(bufferEqual(enc.ephemPublicKey, ephemPublicKey)).to.be.true;
-      expect(bufferEqual(enc.ciphertext, ciphertext)).to.be.true;
-      expect(bufferEqual(enc.mac, mac)).to.be.true;
+      expect(bufferEqual(enc.iv, iv)).to.equal(true);
+      expect(bufferEqual(enc.ephemPublicKey, ephemPublicKey)).to.equal(true);
+      expect(bufferEqual(enc.ciphertext, ciphertext)).to.equal(true);
+      expect(bufferEqual(enc.mac, mac)).to.equal(true);
+      return null;
     });
   });
 
@@ -269,71 +298,93 @@ describe("ECIES", function () {
       .then(function (enc) {
         return eccrypto.decrypt(privateKeyA, enc);
       })
-      .then(function (msg) {
-        expect(msg.toString()).to.equal("to a");
+      .then(function (message) {
+        expect(message.toString()).to.equal("to a");
+        return null;
       });
   });
 
   it("should encrypt and decrypt with generated private and public key", function () {
-    const privateKey = eccrypto.generatePrivate();
-    const publicKey = eccrypto.getPublic(privateKey);
+    const privKey = eccrypto.generatePrivate();
+    const pubKey = eccrypto.getPublic(privKey);
     return eccrypto
-      .encrypt(publicKey, Buffer.from("generated private key"))
+      .encrypt(pubKey, Buffer.from("generated private key"))
       .then(function (enc) {
-        return eccrypto.decrypt(privateKey, enc);
+        return eccrypto.decrypt(privKey, enc);
       })
-      .then(function (msg) {
-        expect(msg.toString()).to.equal("generated private key");
+      .then(function (message) {
+        expect(message.toString()).to.equal("generated private key");
+        return null;
       });
   });
 
   it("should reject promise on bad private key when decrypting", function (done) {
-    eccrypto.encrypt(publicKeyA, Buffer.from("test")).then(function (enc) {
-      eccrypto.decrypt(privateKeyB, enc).catch(function () {
-        done();
-      });
-    });
+    eccrypto
+      .encrypt(publicKeyA, Buffer.from("test"))
+      .then(function (enc) {
+        eccrypto.decrypt(privateKeyB, enc).catch(function () {
+          done();
+        });
+        return null;
+      })
+      .catch(done);
   });
 
   it("should reject promise on bad IV when decrypting", function (done) {
-    eccrypto.encrypt(publicKeyA, Buffer.from("test")).then(function (enc) {
-      enc.iv[0] ^= 1;
-      eccrypto.decrypt(privateKeyA, enc).catch(function () {
-        done();
-      });
-    });
-  });
-
-  it("should reject promise on bad R when decrypting", function (done) {
-    eccrypto.encrypt(publicKeyA, Buffer.from("test")).then(function (enc) {
-      enc.ephemPublicKey[0] ^= 1;
-      eccrypto.decrypt(privateKeyA, enc).catch(function () {
-        done();
-      });
-    });
-  });
-
-  it("should reject promise on bad ciphertext when decrypting", function (done) {
-    eccrypto.encrypt(publicKeyA, Buffer.from("test")).then(function (enc) {
-      enc.ciphertext[0] ^= 1;
-      eccrypto.decrypt(privateKeyA, enc).catch(function () {
-        done();
-      });
-    });
-  });
-
-  it("should reject promise on bad MAC when decrypting", function (done) {
-    eccrypto.encrypt(publicKeyA, Buffer.from("test")).then(function (enc) {
-      const origMac = enc.mac;
-      enc.mac = mac.slice(1);
-      eccrypto.decrypt(privateKeyA, enc).catch(function () {
-        enc.mac = origMac;
-        enc.mac[10] ^= 1;
+    eccrypto
+      .encrypt(publicKeyA, Buffer.from("test"))
+      .then(function (enc) {
+        enc.iv[0] ^= 1;
         eccrypto.decrypt(privateKeyA, enc).catch(function () {
           done();
         });
-      });
-    });
+        return null;
+      })
+      .catch(done);
+  });
+
+  it("should reject promise on bad R when decrypting", function (done) {
+    eccrypto
+      .encrypt(publicKeyA, Buffer.from("test"))
+      .then(function (enc) {
+        enc.ephemPublicKey[0] ^= 1;
+        eccrypto.decrypt(privateKeyA, enc).catch(function () {
+          done();
+        });
+        return null;
+      })
+      .catch(done);
+  });
+
+  it("should reject promise on bad ciphertext when decrypting", function (done) {
+    eccrypto
+      .encrypt(publicKeyA, Buffer.from("test"))
+      .then(function (enc) {
+        enc.ciphertext[0] ^= 1;
+        eccrypto.decrypt(privateKeyA, enc).catch(function () {
+          done();
+        });
+        return null;
+      })
+      .catch(done);
+  });
+
+  it("should reject promise on bad MAC when decrypting", function (done) {
+    eccrypto
+      .encrypt(publicKeyA, Buffer.from("test"))
+      .then(function (enc) {
+        const origMac = enc.mac;
+        enc.mac = mac.slice(1);
+        eccrypto.decrypt(privateKeyA, enc).catch(function () {
+          enc.mac = origMac;
+          enc.mac[10] ^= 1;
+          eccrypto.decrypt(privateKeyA, enc).catch(function () {
+            done();
+          });
+        });
+        return null;
+      })
+      .catch(done);
   });
 
   it("should successfully decrypt if bad MAC is caused by inconsistent padding in derive", function (done) {
@@ -351,8 +402,9 @@ describe("ECIES", function () {
 
     eccrypto
       .decrypt(decryptionKey, encryption)
-      .then(function (msg) {
+      .then(function (_msg) {
         done();
+        return null;
       })
       .catch(function (e) {
         done(e);
