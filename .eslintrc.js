@@ -10,4 +10,13 @@ module.exports = {
     ecmaVersion: 11,
     project: "./tsconfig.json",
   },
+  globals: {
+    document: true,
+    fetch: true,
+    jest: true,
+    it: true,
+    beforeEach: true,
+    afterEach: true,
+    describe: true,
+  },
 };
