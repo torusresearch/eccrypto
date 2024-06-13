@@ -2,9 +2,10 @@
   "name": "@toruslabs/eccrypto",
   "version": "4.0.0",
   "description": "JavaScript Elliptic curve cryptography library, includes fix to browser.js so that encrypt/decrypt works",
-  "main": "./dist/eccrypto.cjs.js",
-  "module": "./dist/eccrypto.esm.js",
+  "main": "./dist/lib.cjs/index.js",
+  "module": "./dist/lib.esm/index.js",
   "types": "./dist/types/index.d.ts",
+  "sideEffects": false,
   "scripts": {
     "build": "torus-scripts build",
     "release": "torus-scripts release",
@@ -20,7 +21,6 @@
     "url": "https://github.com/torusresearch/eccrypto.git"
   },
   "files": [
-    "src",
     "dist"
   ],
   "keywords": [
@@ -42,35 +42,35 @@
   },
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
-    "@babel/cli": "^7.22.10",
-    "@babel/core": "^7.22.10",
-    "@babel/plugin-transform-runtime": "^7.22.10",
-    "@babel/preset-env": "^7.22.10",
-    "@babel/runtime": "^7.22.10",
-    "@toruslabs/config": "^2.0.1",
-    "@toruslabs/eslint-config-node": "^3.0.0",
-    "@toruslabs/torus-scripts": "^5.0.1",
-    "@types/buffer-equal": "^1.0.0",
-    "@types/chai": "^4.3.5",
-    "@types/elliptic": "^6.4.14",
+    "@babel/cli": "^7.24.7",
+    "@babel/core": "^7.24.7",
+    "@babel/plugin-transform-runtime": "^7.24.7",
+    "@babel/preset-env": "^7.24.7",
+    "@babel/runtime": "^7.24.7",
+    "@toruslabs/config": "^2.1.0",
+    "@toruslabs/eslint-config-node": "^3.3.1",
+    "@toruslabs/torus-scripts": "^6.0.1",
+    "@types/buffer-equal": "^1.0.2",
+    "@types/chai": "^4.3.16",
+    "@types/elliptic": "^6.4.18",
     "browserify": "^17.0.0",
     "buffer-equal": "^1.0.1",
     "chai": "^4.3.7",
     "eslint": "^8.46.0",
-    "karma": "^6.4.2",
+    "karma": "^6.4.3",
     "karma-browserify": "^8.1.0",
     "karma-chrome-launcher": "^3.2.0",
     "karma-cli": "^2.0.0",
-    "karma-firefox-launcher": "^2.1.2",
+    "karma-firefox-launcher": "^2.1.3",
     "karma-mocha": "^2.0.1",
     "karma-mocha-reporter": "^2.2.5",
     "karma-safari-launcher": "^1.0.0",
-    "mocha": "^10.2.0",
-    "playwright": "^1.36.2",
-    "typescript": "^5.1.6"
+    "mocha": "^10.4.0",
+    "playwright": "^1.44.1",
+    "typescript": "^5.4.5"
   },
   "dependencies": {
-    "elliptic": "^6.5.4"
+    "elliptic": "^6.5.5"
   },
   "engines": {
     "node": ">=18.x",
