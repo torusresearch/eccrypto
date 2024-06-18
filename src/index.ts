@@ -1,9 +1,8 @@
-import nodeCrypto from "crypto";
 import { ec as EC } from "elliptic";
 
 const ec = new EC("secp256k1");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
-const browserCrypto = global.crypto || (global as any).msCrypto || {};
+const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const subtle = browserCrypto.subtle || (browserCrypto as any).webkitSubtle;
 
@@ -55,23 +54,14 @@ not, since the functions are different and does
 not convert using browserify */
 function randomBytes(size: number): Buffer {
   const arr = new Uint8Array(size);
-  if (typeof browserCrypto.getRandomValues === "undefined") {
-    return Buffer.from(nodeCrypto.randomBytes(size));
-  }
   browserCrypto.getRandomValues(arr);
-
   return Buffer.from(arr);
 }
 
 async function sha512(msg: Buffer): Promise<Uint8Array> {
-  if (subtle) {
-    const hash = await subtle.digest("SHA-512", msg);
-    const result = new Uint8Array(hash);
-    return result;
-  }
-  const hash = nodeCrypto.createHash("sha512");
-  const result = hash.update(msg).digest();
-  return new Uint8Array(result);
+  const hash = await subtle.digest("SHA-512", msg);
+  const result = new Uint8Array(hash);
+  return result;
 }
 
 type AesFunctionType = (iv: Buffer, key: Buffer, data: Buffer) => Promise<Buffer>;
@@ -89,16 +79,6 @@ function getAes(op: "encrypt" | "decrypt"): AesFunctionType {
       };
       const result = await subtle[op](encAlgorithm, cryptoKey, data);
       return Buffer.from(new Uint8Array(result));
-    } else if (op === "encrypt") {
-      const cipher = nodeCrypto.createCipheriv("aes-256-cbc", key, iv);
-      const firstChunk = cipher.update(data);
-      const secondChunk = cipher.final();
-      return Buffer.concat([firstChunk, secondChunk]);
-    } else if (op === "decrypt") {
-      const decipher = nodeCrypto.createDecipheriv("aes-256-cbc", key, iv);
-      const firstChunk = decipher.update(data);
-      const secondChunk = decipher.final();
-      return Buffer.concat([firstChunk, secondChunk]);
     }
     throw new Error(`Unsupported operation: ${op}`);
   };
@@ -107,21 +87,15 @@ const aesCbcEncrypt = getAes("encrypt");
 const aesCbcDecrypt = getAes("decrypt");
 
 async function hmacSha256Sign(key: Buffer, msg: Buffer): Promise<Buffer> {
-  if (subtle) {
-    const importAlgorithm = {
-      name: "HMAC",
-      hash: {
-        name: "SHA-256",
-      },
-    };
-    const cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
-    const sig = await subtle.sign("HMAC", cryptoKey, msg);
-    const result = Buffer.from(new Uint8Array(sig));
-    return result;
-  }
-  const hmac = nodeCrypto.createHmac("sha256", Buffer.from(key));
-  hmac.update(msg);
-  const result = hmac.digest();
+  const importAlgorithm = {
+    name: "HMAC",
+    hash: {
+      name: "SHA-256",
+    },
+  };
+  const cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
+  const sig = await subtle.sign("HMAC", cryptoKey, msg);
+  const result = Buffer.from(new Uint8Array(sig));
   return result;
 }
 async function hmacSha256Verify(key: Buffer, msg: Buffer, sig: Buffer): Promise<boolean> {
