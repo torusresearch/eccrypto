@@ -3,7 +3,7 @@
 on:
   push:
     branches-ignore:
-      - 'master'
+      - "master"
 
 name: CI
 
@@ -33,4 +33,4 @@ jobs:
         run: npm run build
 
       - name: Run tests
-        run: npm run test:ci
+        run: npx playwright install && npm run test:ci

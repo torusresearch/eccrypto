@@ -59,9 +59,14 @@ function randomBytes(size: number): Buffer {
 }
 
 async function sha512(msg: Buffer): Promise<Uint8Array> {
-  const hash = await subtle.digest("SHA-512", msg);
-  const result = new Uint8Array(hash);
-  return result;
+  if (!browserCrypto.createHash) {
+    const hash = await subtle.digest("SHA-512", msg);
+    const result = new Uint8Array(hash);
+    return result;
+  }
+  const hash = browserCrypto.createHash("sha512");
+  const result = hash.update(msg).digest();
+  return new Uint8Array(result);
 }
 
 type AesFunctionType = (iv: Buffer, key: Buffer, data: Buffer) => Promise<Buffer>;
@@ -99,15 +104,21 @@ const aesCbcEncrypt = getAes("encrypt");
 const aesCbcDecrypt = getAes("decrypt");
 
 async function hmacSha256Sign(key: Buffer, msg: Buffer): Promise<Buffer> {
-  const importAlgorithm = {
-    name: "HMAC",
-    hash: {
-      name: "SHA-256",
-    },
-  };
-  const cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
-  const sig = await subtle.sign("HMAC", cryptoKey, msg);
-  const result = Buffer.from(new Uint8Array(sig));
+  if (!browserCrypto.createHmac) {
+    const importAlgorithm = {
+      name: "HMAC",
+      hash: {
+        name: "SHA-256",
+      },
+    };
+    const cryptoKey = await subtle.importKey("raw", new Uint8Array(key), importAlgorithm, false, ["sign", "verify"]);
+    const sig = await subtle.sign("HMAC", cryptoKey, msg);
+    const result = Buffer.from(new Uint8Array(sig));
+    return result;
+  }
+  const hmac = browserCrypto.createHmac("sha256", Buffer.from(key));
+  hmac.update(msg);
+  const result = hmac.digest();
   return result;
 }
 async function hmacSha256Verify(key: Buffer, msg: Buffer, sig: Buffer): Promise<boolean> {
