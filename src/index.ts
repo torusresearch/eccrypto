@@ -68,7 +68,7 @@ type AesFunctionType = (iv: Buffer, key: Buffer, data: Buffer) => Promise<Buffer
 
 function getAes(op: "encrypt" | "decrypt"): AesFunctionType {
   return async function (iv: Buffer, key: Buffer, data: Buffer) {
-    if (subtle) {
+    if (subtle && subtle[op] && subtle.importKey) {
       const importAlgorithm = {
         name: "AES-CBC",
       };
@@ -77,8 +77,20 @@ function getAes(op: "encrypt" | "decrypt"): AesFunctionType {
         name: "AES-CBC",
         iv,
       };
+      // encrypt and decrypt ops are not implemented in react-native-quick-crypto yet.
       const result = await subtle[op](encAlgorithm, cryptoKey, data);
       return Buffer.from(new Uint8Array(result));
+    } else if (op === "encrypt" && browserCrypto.createCipheriv) {
+      // This is available if crypto is polyfilled in react native environment
+      const cipher = browserCrypto.createCipheriv("aes-256-cbc", key, iv);
+      const firstChunk = cipher.update(data);
+      const secondChunk = cipher.final();
+      return Buffer.concat([firstChunk, secondChunk]);
+    } else if (op === "decrypt" && browserCrypto.createDecipheriv) {
+      const decipher = browserCrypto.createDecipheriv("aes-256-cbc", key, iv);
+      const firstChunk = decipher.update(data);
+      const secondChunk = decipher.final();
+      return Buffer.concat([firstChunk, secondChunk]);
     }
     throw new Error(`Unsupported operation: ${op}`);
   };
