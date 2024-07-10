@@ -53,6 +53,9 @@ function equalConstTime(b1: Buffer, b2: Buffer): boolean {
 not, since the functions are different and does
 not convert using browserify */
 function randomBytes(size: number): Buffer {
+  if (typeof browserCrypto.getRandomValues === "undefined") {
+    return Buffer.from(browserCrypto.randomBytes(size));
+  }
   const arr = new Uint8Array(size);
   browserCrypto.getRandomValues(arr);
   return Buffer.from(arr);
