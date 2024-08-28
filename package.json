@@ -70,7 +70,7 @@
     "typescript": "^5.5.3"
   },
   "dependencies": {
-    "elliptic": "^6.5.5"
+    "elliptic": "^6.5.6"
   },
   "engines": {
     "node": ">=18.x",
