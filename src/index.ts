@@ -199,9 +199,19 @@ export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer): 
   if (publicKeyB.length === 33) {
     assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
   }
-  // should we unpadde it?
-  const Px = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
-  return Buffer.from(Px).subarray(Px.length - 32);
+
+  // unpad to match previous implementation
+  // elliptic return BN and we return Buffer(BN.toArray())
+  // match by unpadding
+  const sharedSecret = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
+  const Px = sharedSecret.subarray(sharedSecret.length - 32);
+
+  let i = 0;
+  while (i < Px.length && Px[i] === 0) {
+    i++;
+  }
+
+  return Buffer.from(Px).subarray(i);
 };
 
 export const deriveUnpadded = derive;
