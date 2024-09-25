@@ -74,6 +74,6 @@
     "npm": ">=9.x"
   },
   "dependencies": {
-    "elliptic": "^6.5.7"
+    "@noble/curves": "^1.6.0"
   }
 }

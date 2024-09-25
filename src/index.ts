@@ -1,6 +1,4 @@
-import { ec as EC } from "elliptic";
-
-const ec = new EC("secp256k1");
+import { secp256k1 } from "@noble/curves/secp256k1";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -147,7 +145,7 @@ export const getPublic = function (privateKey: Buffer): Buffer {
   assert(isValidPrivateKey(privateKey), "Bad private key");
   // XXX(Kagami): `elliptic.utils.encode` returns array for every
   // encoding except `hex`.
-  return Buffer.from(ec.keyFromPrivate(privateKey).getPublic("array"));
+  return Buffer.from(secp256k1.getPublicKey(privateKey, false));
 };
 
 /**
@@ -159,7 +157,7 @@ export const getPublicCompressed = function (privateKey: Buffer): Buffer {
   assert(isValidPrivateKey(privateKey), "Bad private key");
   // See https://github.com/wanderer/secp256k1-node/issues/46
   const compressed = true;
-  return Buffer.from(ec.keyFromPrivate(privateKey).getPublic(compressed, "array"));
+  return Buffer.from(secp256k1.getPublicKey(privateKey, compressed));
 };
 
 // NOTE(Kagami): We don't use promise shim in Browser implementation
@@ -172,13 +170,7 @@ export const sign = async function (privateKey: Buffer, msg: Buffer): Promise<Bu
   assert(isValidPrivateKey(privateKey), "Bad private key");
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
-  return Buffer.from(
-    ec
-      .sign(msg, privateKey, {
-        canonical: true,
-      })
-      .toDER()
-  );
+  return Buffer.from(secp256k1.sign(msg, privateKey).toDERRawBytes());
 };
 
 export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffer): Promise<null> {
@@ -191,9 +183,7 @@ export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffe
   }
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
-  if (ec.verify(msg, sig, publicKey)) {
-    return null;
-  }
+  if (secp256k1.verify(sig, msg, publicKey)) return null;
   throw new Error("Bad signature");
 };
 
@@ -209,10 +199,9 @@ export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer): 
   if (publicKeyB.length === 33) {
     assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
   }
-  const keyA = ec.keyFromPrivate(privateKeyA);
-  const keyB = ec.keyFromPublic(publicKeyB);
-  const Px = keyA.derive(keyB.getPublic()); // BN instance
-  return Buffer.from(Px.toArray());
+  // should we unpadde it?
+  const Px = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
+  return Buffer.from(Px).subarray(Px.length - 32);
 };
 
 export const deriveUnpadded = derive;
@@ -229,10 +218,8 @@ export const derivePadded = async function (privateKeyA: Buffer, publicKeyB: Buf
   if (publicKeyB.length === 33) {
     assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
   }
-  const keyA = ec.keyFromPrivate(privateKeyA);
-  const keyB = ec.keyFromPublic(publicKeyB);
-  const Px = keyA.derive(keyB.getPublic()); // BN instance
-  return Buffer.from(Px.toString(16, 64), "hex");
+  const Px = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
+  return Buffer.from(Px).subarray(Px.length - 32);
 };
 
 export const encrypt = async function (publicKeyTo: Buffer, msg: Buffer, opts?: { iv?: Buffer; ephemPrivateKey?: Buffer }): Promise<Ecies> {
