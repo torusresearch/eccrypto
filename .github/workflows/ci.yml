@@ -32,5 +32,8 @@ jobs:
       - name: Run build
         run: npm run build
 
+      - name: Run tests x
+        run: npx playwright install-deps webkit
+
       - name: Run tests
         run: npx playwright install && npm run test:ci
