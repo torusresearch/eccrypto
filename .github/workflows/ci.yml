@@ -32,7 +32,7 @@ jobs:
       - name: Run build
         run: npm run build
 
-      - name: Run tests x
+      - name: Install playwright webkit
         run: npx playwright install-deps webkit
 
       - name: Run tests
