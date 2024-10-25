@@ -222,6 +222,7 @@ describe("ECDH", function () {
 
 describe("ECIES", function () {
   let ephemPublicKey, encOpts, decOpts, iv, ciphertext, mac;
+
   beforeEach(function () {
     const ephemPrivateKey = Buffer.alloc(32);
     ephemPrivateKey.fill(4);
@@ -409,5 +410,23 @@ describe("ECIES", function () {
       .catch(function (e) {
         done(e);
       });
+  });
+
+  it("should throw an error when decryption fails due to bad MAC", async function () {
+    const testPrivateKey = Buffer.from("1111111111111111111111111111111111111111111111111111111111111111", "hex");
+    const testPublicKey = eccrypto.getPublic(testPrivateKey);
+
+    const testMessage = Buffer.from("Hello, world!");
+    const encrypted = await eccrypto.encrypt(testPublicKey, testMessage);
+
+    // Tamper with the MAC to make it invalid
+    encrypted.mac = Buffer.from("0000000000000000000000000000000000000000000000000000000000000000", "hex");
+
+    try {
+      await eccrypto.decrypt(testPrivateKey, encrypted);
+      // throw new Error("Decryption should have failed");
+    } catch (error) {
+      expect(error.message).to.equal("bad MAC after trying padded");
+    }
   });
 });
