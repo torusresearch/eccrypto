@@ -32,7 +32,6 @@
     "cryptography",
     "secp256k1",
     "K-256",
-    "elliptic",
     "curve"
   ],
   "author": "Torus Labs",
@@ -52,7 +51,6 @@
     "@toruslabs/torus-scripts": "^6.1.5",
     "@types/buffer-equal": "^1.0.2",
     "@types/chai": "^4.3.16",
-    "@types/elliptic": "^6.4.18",
     "browserify": "^17.0.1",
     "buffer-equal": "^1.0.1",
     "chai": "^4.3.7",
@@ -74,6 +72,6 @@
     "npm": ">=9.x"
   },
   "dependencies": {
-    "elliptic": "^6.5.7"
+    "@noble/curves": "^1.6.0"
   }
 }
