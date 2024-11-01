@@ -1,3 +1,4 @@
+import { concatBytes } from "@noble/curves/abstract/utils";
 import { secp256k1 } from "@noble/curves/secp256k1";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
@@ -5,41 +6,6 @@ const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 const subtle = (browserCrypto.subtle || (browserCrypto as any).webkitSubtle) as SubtleCrypto;
 
 const EC_GROUP_ORDER = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
-
-export function hexToUint8Array(hex: string): Uint8Array {
-  const length = hex.length / 2; // Each byte is represented by two hex characters
-  const uint8Array = new Uint8Array(length);
-
-  const paddedHex = hex.padStart(length * 2, "0"); // Pad the hex string with zeros
-
-  for (let i = 0; i < length; i++) {
-    uint8Array[i] = parseInt(paddedHex.substring(i * 2, (i + 1) * 2), 16); // Convert each pair of hex characters to a byte
-  }
-
-  return uint8Array;
-}
-export function uint8ArrayToHex(uint8Array: Uint8Array): string {
-  return Array.from(uint8Array)
-    .map((byte) => byte.toString(16).padStart(2, "0")) // Convert each byte to hex and pad with zeros
-    .join(""); // Join all hex strings into one string
-}
-
-export function concatUint8Arrays(arrays: Uint8Array[]): Uint8Array {
-  // Calculate the total length of the resulting Uint8Array
-  const totalLength = arrays.reduce((acc, array) => acc + array.length, 0);
-
-  // Create a new Uint8Array with the total length
-  const result = new Uint8Array(totalLength);
-
-  // Copy each Uint8Array into the result
-  let offset = 0;
-  for (const array of arrays) {
-    result.set(array, offset);
-    offset += array.length;
-  }
-
-  return result;
-}
 
 export interface Ecies {
   iv: Uint8Array;
@@ -128,12 +94,12 @@ function getAes(op: "encrypt" | "decrypt"): AesFunctionType {
       const firstChunk = cipher.update(data);
       const secondChunk = cipher.final();
 
-      return concatUint8Arrays([firstChunk, secondChunk]);
+      return concatBytes(firstChunk, secondChunk);
     } else if (op === "decrypt" && browserCrypto.createDecipheriv) {
       const decipher = browserCrypto.createDecipheriv("aes-256-cbc", key, iv);
       const firstChunk = decipher.update(data);
       const secondChunk = decipher.final();
-      return concatUint8Arrays([firstChunk, secondChunk]);
+      return concatBytes(firstChunk, secondChunk);
     }
     throw new Error(`Unsupported operation: ${op}`);
   };
@@ -289,7 +255,7 @@ export const encrypt = async function (
   const macKey = hash.slice(32);
   const data = await aesCbcEncrypt(iv, encryptionKey, msg);
   const ciphertext = data;
-  const dataToMac = concatUint8Arrays([iv, ephemPublicKey, ciphertext]);
+  const dataToMac = concatBytes(iv, ephemPublicKey, ciphertext);
   const mac = await hmacSha256Sign(macKey, dataToMac);
   return {
     iv,
@@ -306,7 +272,7 @@ export const decrypt = async function (privateKey: Uint8Array, opts: Ecies, _pad
   const hash = await sha512(Px);
   const encryptionKey = hash.slice(0, 32);
   const macKey = hash.slice(32);
-  const dataToMac = concatUint8Arrays([opts.iv, opts.ephemPublicKey, opts.ciphertext]);
+  const dataToMac = concatBytes(opts.iv, opts.ephemPublicKey, opts.ciphertext);
   const macGood = await hmacSha256Verify(macKey, dataToMac, opts.mac);
   if (!macGood && padding === false) {
     return decrypt(privateKey, opts, true);
