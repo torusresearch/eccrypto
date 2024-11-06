@@ -13,7 +13,8 @@ export default defineConfig({
       enabled: true,
     },
     coverage: {
-      provider: "v8",
+      reporter: ["text"],
+      provider: "istanbul",
     },
   },
 });
