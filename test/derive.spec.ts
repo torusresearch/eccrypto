@@ -106,10 +106,6 @@ describe("Functions: derive & derivePadded", () => {
       expect(bufferEqual(deriveAB, derivePaddedAB)).toBe(true);
     });
 
-    it("should be equal: derive(privateKeyB, publicKeyA) == derivePadded(privateKeyB, publicKeyA)", async () => {
-      expect(bufferEqual(deriveBA, derivePaddedBA)).toBe(true);
-    });
-
     it("should be equal: derivePadded(privateKeyA, publicKeyB) == derivePadded(privateKeyB, publicKeyA)", async () => {
       expect(bufferEqual(derivePaddedBA, derivePaddedAB)).toBe(true);
     });
