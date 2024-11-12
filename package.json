@@ -10,10 +10,10 @@
     "build": "torus-scripts build",
     "release": "torus-scripts release",
     "test:ci": "npm run test:node && npm run test:browsers",
-    "test:node": "vitest run",
-    "test:chrome": "vitest run --config test/config/vitest-chrome.config.mts --coverage",
-    "test:firefox": "vitest run --config test/config/vitest-firefox.config.mts --coverage",
-    "test:safari": "vitest run --config test/config/vitest-safari.config.mts --coverage",
+    "test:node": "vitest run --config test/config/node.config.mts --coverage",
+    "test:chrome": "vitest run --config test/config/chrome.config.mts --coverage",
+    "test:firefox": "vitest run --config test/config/firefox.config.mts --coverage",
+    "test:safari": "vitest run --config test/config/safari.config.mts --coverage",
     "test:browsers": "npm run test:chrome && npm run test:firefox && npm run test:safari"
   },
   "repository": {
