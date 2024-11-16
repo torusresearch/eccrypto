@@ -4,7 +4,7 @@ import { nodePolyfills } from "vite-plugin-node-polyfills";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [nodePolyfills({ include: ["crypto", "util", "stream"] })],
+  plugins: [nodePolyfills({ include: ["buffer"] })],
   test: {
     reporters: "verbose",
     browser: {
