@@ -42,31 +42,32 @@
   },
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
-    "@babel/cli": "^7.25.9",
+    "@babel/cli": "^7.26.4",
     "@babel/core": "^7.26.0",
     "@babel/plugin-transform-runtime": "^7.25.9",
     "@babel/preset-env": "^7.26.0",
     "@babel/runtime": "^7.26.0",
     "@toruslabs/config": "^2.2.0",
-    "@toruslabs/eslint-config-node": "^3.3.4",
-    "@toruslabs/torus-scripts": "^6.1.5",
+    "@toruslabs/eslint-config-node": "^4.0.0",
+    "@toruslabs/eslint-config-typescript": "^4.0.0",
+    "@toruslabs/torus-scripts": "^7.0.0",
     "@types/buffer-equal": "^1.0.2",
     "@types/elliptic": "^6.4.18",
-    "@vitest/browser": "^2.1.4",
-    "@vitest/coverage-istanbul": "^2.1.4",
+    "@vitest/browser": "^2.1.8",
+    "@vitest/coverage-istanbul": "^2.1.8",
     "browserify": "^17.0.1",
     "buffer-equal": "^1.0.1",
-    "eslint": "^8.57.0",
-    "playwright": "^1.48.2",
-    "typescript": "^5.6.3",
+    "eslint": "^9.17.0",
+    "playwright": "^1.49.1",
+    "typescript": "^5.7.2",
     "vite-plugin-node-polyfills": "^0.22.0",
-    "vitest": "latest"
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=18.x",
     "npm": ">=9.x"
   },
   "dependencies": {
-    "elliptic": "^6.6.0"
+    "elliptic": "^6.6.1"
   }
 }
