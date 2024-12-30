@@ -8,6 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "torus-scripts build",
+    "lint": "eslint --fix 'src/**/*.ts'",
     "release": "torus-scripts release",
     "test:ci": "npm run test:node && npm run test:browsers",
     "test:node": "vitest run --config test/config/node.config.mts --coverage",
