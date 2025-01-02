@@ -1,18 +1,17 @@
-// eslint-disable-next-line import/no-extraneous-dependencies
-import { nodePolyfills } from "vite-plugin-node-polyfills";
-// eslint-disable-next-line import/no-unresolved
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [nodePolyfills({ include: ["buffer"] })],
   test: {
+    setupFiles: ["./test/configs/browserSetup.ts"],
+    environment: "jsdom",
     reporters: "verbose",
     browser: {
       screenshotFailures: false,
       headless: true,
       provider: "playwright",
-      name: "webkit",
+      name: "chromium",
       enabled: true,
+      testerHtmlPath: "./test/test.html",
     },
     coverage: {
       reporter: ["text"],
