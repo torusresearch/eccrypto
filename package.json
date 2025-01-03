@@ -8,12 +8,13 @@
   "sideEffects": false,
   "scripts": {
     "build": "torus-scripts build",
+    "lint": "eslint --fix 'src/**/*.ts'",
     "release": "torus-scripts release",
     "test:ci": "npm run test:node && npm run test:browsers",
-    "test:node": "vitest run --config test/config/node.config.mts --coverage",
-    "test:chrome": "vitest run --config test/config/chrome.config.mts --coverage",
-    "test:firefox": "vitest run --config test/config/firefox.config.mts --coverage",
-    "test:safari": "vitest run --config test/config/safari.config.mts --coverage",
+    "test:node": "vitest run --config test/configs/node.config.mts --coverage",
+    "test:chrome": "vitest run --config test/configs/chrome.config.mts --coverage",
+    "test:firefox": "vitest run --config test/configs/firefox.config.mts --coverage",
+    "test:safari": "vitest run --config test/configs/safari.config.mts --coverage",
     "test:browsers": "npm run test:chrome && npm run test:firefox && npm run test:safari"
   },
   "repository": {
@@ -42,31 +43,27 @@
   },
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
-    "@babel/cli": "^7.25.9",
-    "@babel/core": "^7.26.0",
-    "@babel/plugin-transform-runtime": "^7.25.9",
-    "@babel/preset-env": "^7.26.0",
     "@babel/runtime": "^7.26.0",
-    "@toruslabs/config": "^2.2.0",
-    "@toruslabs/eslint-config-node": "^3.3.4",
-    "@toruslabs/torus-scripts": "^6.1.5",
+    "@toruslabs/config": "^3.0.0",
+    "@toruslabs/eslint-config-node": "^4.0.2",
+    "@toruslabs/eslint-config-typescript": "^4.0.2",
+    "@toruslabs/torus-scripts": "^7.0.2",
     "@types/buffer-equal": "^1.0.2",
     "@types/elliptic": "^6.4.18",
-    "@vitest/browser": "^2.1.4",
-    "@vitest/coverage-istanbul": "^2.1.4",
+    "@vitest/browser": "^2.1.8",
+    "@vitest/coverage-istanbul": "^2.1.8",
     "browserify": "^17.0.1",
     "buffer-equal": "^1.0.1",
-    "eslint": "^8.57.0",
-    "playwright": "^1.48.2",
-    "typescript": "^5.6.3",
-    "vite-plugin-node-polyfills": "^0.22.0",
-    "vitest": "latest"
+    "eslint": "^9.17.0",
+    "playwright": "^1.49.1",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
   },
   "engines": {
-    "node": ">=18.x",
+    "node": ">=20.x",
     "npm": ">=9.x"
   },
   "dependencies": {
-    "elliptic": "^6.6.0"
+    "elliptic": "^6.6.1"
   }
 }
