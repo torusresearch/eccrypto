@@ -12,10 +12,7 @@
     "release": "torus-scripts release",
     "test:ci": "npm run test:node && npm run test:browsers",
     "test:node": "vitest run --config test/configs/node.config.mts --coverage",
-    "test:chrome": "vitest run --config test/configs/chrome.config.mts --coverage",
-    "test:firefox": "vitest run --config test/configs/firefox.config.mts --coverage",
-    "test:safari": "vitest run --config test/configs/safari.config.mts --coverage",
-    "test:browsers": "npm run test:chrome && npm run test:firefox && npm run test:safari"
+    "test:browsers": "vitest run --config test/configs/browsers.config.mts --coverage"
   },
   "repository": {
     "type": "git",
@@ -50,14 +47,14 @@
     "@toruslabs/torus-scripts": "^7.0.4",
     "@types/buffer-equal": "^1.0.2",
     "@types/elliptic": "^6.4.18",
-    "@vitest/browser": "^2.1.8",
-    "@vitest/coverage-istanbul": "^2.1.8",
+    "@vitest/browser": "^3.0.1",
+    "@vitest/coverage-istanbul": "^3.0.1",
     "browserify": "^17.0.1",
     "buffer-equal": "^1.0.1",
     "eslint": "^9.18.0",
     "playwright": "^1.49.1",
     "typescript": "^5.7.3",
-    "vitest": "^2.1.8"
+    "vitest": "^3.0.1"
   },
   "engines": {
     "node": ">=20.x",
