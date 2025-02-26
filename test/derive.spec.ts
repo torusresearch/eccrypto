@@ -1,6 +1,6 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import bufferEqual from "buffer-equal";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import * as eccrypto from "../src/index";
 
@@ -89,7 +89,7 @@ describe("Functions: derive & derivePadded", () => {
     let derivePaddedAB: Buffer;
     let derivePaddedBA: Buffer;
 
-    beforeEach(async () => {
+    beforeAll(async () => {
       deriveAB = await eccrypto.derive(privateKeyA, publicKeyB);
       deriveABUseCompressed = await eccrypto.derive(privateKeyA, compressedPublicKeyB);
       deriveBA = await eccrypto.derive(privateKeyB, publicKeyA);
