@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import bufferEqual from "buffer-equal";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import * as eccrypto from "../src/index";
@@ -99,23 +98,23 @@ describe("Functions: derive & derivePadded", () => {
     });
 
     it("should be equal: derive(privateKeyA, publicKeyB) == derive(privateKeyB, publicKeyA)", async () => {
-      expect(bufferEqual(deriveBA, deriveAB)).toBe(true);
+      expect(Buffer.compare(deriveBA, deriveAB)).toBe(0);
     });
 
     it("should be equal: derive(privateKeyA, publicKeyB) == derivePadded(privateKeyA, publicKeyB)", async () => {
-      expect(bufferEqual(deriveAB, derivePaddedAB)).toBe(true);
+      expect(Buffer.compare(deriveAB, derivePaddedAB)).toBe(0);
     });
 
     it("should be equal: derivePadded(privateKeyA, publicKeyB) == derivePadded(privateKeyB, publicKeyA)", async () => {
-      expect(bufferEqual(derivePaddedBA, derivePaddedAB)).toBe(true);
+      expect(Buffer.compare(derivePaddedBA, derivePaddedAB)).toBe(0);
     });
 
     it("should be equal: derive(privateKeyA, compressedPublicKeyB) == derive(privateKeyB, compressedPublicKeyA)", async () => {
-      expect(bufferEqual(deriveABUseCompressed, deriveBAUseCompressed)).toBe(true);
+      expect(Buffer.compare(deriveABUseCompressed, deriveBAUseCompressed)).toBe(0);
     });
 
     it("should be equal: derive(privateKeyA, compressedPublicKeyB) == derivePadded(privateKeyA, compressedPublicKeyB)", async () => {
-      expect(bufferEqual(deriveABUseCompressed, derivePaddedAB)).toBe(true);
+      expect(Buffer.compare(deriveABUseCompressed, derivePaddedAB)).toBe(0);
     });
   });
 });

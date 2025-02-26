@@ -1,5 +1,4 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import bufferEqual from "buffer-equal";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import * as eccrypto from "../src/index";
@@ -39,18 +38,18 @@ describe("Functions: encrypt & decrypt", () => {
 
     it("should encrypt message when provided encryption options", async () => {
       const enc = await eccrypto.encrypt(publicKey, Buffer.from("test"), encOpts);
-      expect(bufferEqual(enc.iv, iv)).toBe(true);
-      expect(bufferEqual(enc.ephemPublicKey, ephemPublicKey)).toBe(true);
-      expect(bufferEqual(enc.ciphertext, ciphertext)).toBe(true);
-      expect(bufferEqual(enc.mac, mac)).toBe(true);
+      expect(Buffer.compare(enc.iv, iv)).toBe(0);
+      expect(Buffer.compare(enc.ephemPublicKey, ephemPublicKey)).toBe(0);
+      expect(Buffer.compare(enc.ciphertext, ciphertext)).toBe(0);
+      expect(Buffer.compare(enc.mac, mac)).toBe(0);
     });
 
     it("should encrypt with compressed public key", async () => {
       const enc = await eccrypto.encrypt(publicKeyCompressed, Buffer.from("test"), encOpts);
-      expect(bufferEqual(enc.iv, iv)).toBe(true);
-      expect(bufferEqual(enc.ephemPublicKey, ephemPublicKey)).toBe(true);
-      expect(bufferEqual(enc.ciphertext, ciphertext)).toBe(true);
-      expect(bufferEqual(enc.mac, mac)).toBe(true);
+      expect(Buffer.compare(enc.iv, iv)).toBe(0);
+      expect(Buffer.compare(enc.ephemPublicKey, ephemPublicKey)).toBe(0);
+      expect(Buffer.compare(enc.ciphertext, ciphertext)).toBe(0);
+      expect(Buffer.compare(enc.mac, mac)).toBe(0);
     });
 
     it("should throw 'Bad public key' on bad publicKey when encrypting", async () => {
