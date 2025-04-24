@@ -28,6 +28,14 @@ describe("Functions: encrypt & decrypt", () => {
   });
 
   describe("encrypt", () => {
+    it("should encrypt message with encOpts undefined", async () => {
+      const enc = await eccrypto.encrypt(publicKey, Buffer.from("test"));
+      expect(enc.iv).toBeDefined();
+      expect(enc.ephemPublicKey).toBeDefined();
+      expect(enc.ciphertext).toBeDefined();
+      expect(enc.mac).toBeDefined();
+    });
+
     it("should encrypt message when let encOpts empty", async () => {
       const enc = await eccrypto.encrypt(publicKey, Buffer.from("test"), {});
       expect(enc.iv).toBeDefined();
@@ -38,6 +46,15 @@ describe("Functions: encrypt & decrypt", () => {
 
     it("should encrypt message when provided encryption options", async () => {
       const enc = await eccrypto.encrypt(publicKey, Buffer.from("test"), encOpts);
+      expect(Buffer.compare(enc.iv, iv)).toBe(0);
+      expect(Buffer.compare(enc.ephemPublicKey, ephemPublicKey)).toBe(0);
+      expect(Buffer.compare(enc.ciphertext, ciphertext)).toBe(0);
+      expect(Buffer.compare(enc.mac, mac)).toBe(0);
+    });
+
+    it("should encrypt with padding", async () => {
+      const encOptsLocal = { ...encOpts, padding: true };
+      const enc = await eccrypto.encrypt(publicKey, Buffer.from("test"), encOptsLocal);
       expect(Buffer.compare(enc.iv, iv)).toBe(0);
       expect(Buffer.compare(enc.ephemPublicKey, ephemPublicKey)).toBe(0);
       expect(Buffer.compare(enc.ciphertext, ciphertext)).toBe(0);
