@@ -197,7 +197,7 @@ export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffe
   throw new Error("Bad signature");
 };
 
-export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer): Promise<Buffer> {
+export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer, padding?: boolean): Promise<Buffer> {
   assert(Buffer.isBuffer(privateKeyA), "Bad private key");
   assert(Buffer.isBuffer(publicKeyB), "Bad public key");
   assert(privateKeyA.length === 32, "Bad private key");
@@ -212,30 +212,25 @@ export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer): 
   const keyA = ec.keyFromPrivate(privateKeyA);
   const keyB = ec.keyFromPublic(publicKeyB);
   const Px = keyA.derive(keyB.getPublic()); // BN instance
+  if (padding) {
+    return Buffer.from(Px.toString(16, 64), "hex");
+  }
   return Buffer.from(Px.toArray());
 };
 
-export const deriveUnpadded = derive;
-
 export const derivePadded = async function (privateKeyA: Buffer, publicKeyB: Buffer): Promise<Buffer> {
-  assert(Buffer.isBuffer(privateKeyA), "Bad private key");
-  assert(Buffer.isBuffer(publicKeyB), "Bad public key");
-  assert(privateKeyA.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKeyA), "Bad private key");
-  assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key");
-  if (publicKeyB.length === 65) {
-    assert(publicKeyB[0] === 4, "Bad public key");
-  }
-  if (publicKeyB.length === 33) {
-    assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
-  }
-  const keyA = ec.keyFromPrivate(privateKeyA);
-  const keyB = ec.keyFromPublic(publicKeyB);
-  const Px = keyA.derive(keyB.getPublic()); // BN instance
-  return Buffer.from(Px.toString(16, 64), "hex");
+  return derive(privateKeyA, publicKeyB, true);
 };
 
-export const encrypt = async function (publicKeyTo: Buffer, msg: Buffer, opts?: { iv?: Buffer; ephemPrivateKey?: Buffer }): Promise<Ecies> {
+export const deriveUnpadded = async function (privateKeyA: Buffer, publicKeyB: Buffer): Promise<Buffer> {
+  return derive(privateKeyA, publicKeyB, false);
+};
+
+export const encrypt = async function (
+  publicKeyTo: Buffer,
+  msg: Buffer,
+  opts?: { iv?: Buffer; ephemPrivateKey?: Buffer; padding?: boolean }
+): Promise<Ecies> {
   opts = opts || {};
 
   let ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
@@ -244,7 +239,7 @@ export const encrypt = async function (publicKeyTo: Buffer, msg: Buffer, opts?: 
     ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
   }
   const ephemPublicKey = getPublic(ephemPrivateKey);
-  const Px = await deriveUnpadded(ephemPrivateKey, publicKeyTo);
+  const Px = await derive(ephemPrivateKey, publicKeyTo, opts.padding);
   const hash = await sha512(Px);
   const iv = opts.iv || randomBytes(16);
   const encryptionKey = hash.slice(0, 32);
@@ -261,16 +256,14 @@ export const encrypt = async function (publicKeyTo: Buffer, msg: Buffer, opts?: 
   };
 };
 
-export const decrypt = async function (privateKey: Buffer, opts: Ecies, _padding?: boolean): Promise<Buffer> {
-  const padding = _padding ?? false;
-  const deriveLocal = padding ? derivePadded : deriveUnpadded;
-  const Px = await deriveLocal(privateKey, opts.ephemPublicKey);
+export const decrypt = async function (privateKey: Buffer, opts: Ecies, padding?: boolean): Promise<Buffer> {
+  const Px = await derive(privateKey, opts.ephemPublicKey, padding);
   const hash = await sha512(Px);
   const encryptionKey = hash.slice(0, 32);
   const macKey = hash.slice(32);
   const dataToMac = Buffer.concat([opts.iv, opts.ephemPublicKey, opts.ciphertext]);
   const macGood = await hmacSha256Verify(Buffer.from(macKey), dataToMac, opts.mac);
-  if (!macGood && padding === false) {
+  if (!macGood && !padding) {
     return decrypt(privateKey, opts, true);
   } else if (!macGood && padding === true) {
     throw new Error("bad MAC after trying padded");
