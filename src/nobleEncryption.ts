@@ -92,7 +92,13 @@ export const nobleDecrypt = async function (privateKey: Uint8Array, opts: NobleE
   const { iv, ephemPublicKey, ciphertext, mac } = opts;
   const sharedSecret = getSharedSecret(privateKey, ephemPublicKey);
   // need to remove first byte
-  const sharedSecretSliced = sharedSecret.slice(1);
+  let sharedSecretSliced = sharedSecret.slice(1);
+
+  if (!padding) {
+    while (sharedSecretSliced.at(0) === 0) {
+      sharedSecretSliced = sharedSecretSliced.slice(1);
+    }
+  }
 
   const hash = sha512(sharedSecretSliced);
   const key = hash.slice(0, 32);
