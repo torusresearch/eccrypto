@@ -1,7 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
+import { bytesToUtf8 } from "@noble/ciphers/utils";
+import { getPublicKey } from "@noble/secp256k1";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import * as eccrypto from "../src/index";
+import { decrypt, encrypt, nobleDecrypt, NobleEciesToEcies, nobleEncrypt } from "../src/nobleEncryption";
 
 describe("Functions: encrypt & decrypt", () => {
   let ephemPublicKey: Buffer;
@@ -14,8 +17,9 @@ describe("Functions: encrypt & decrypt", () => {
   let publicKey: Buffer;
   let publicKeyCompressed: Buffer;
 
+  let ephemPrivateKey: Buffer;
   beforeEach(() => {
-    const ephemPrivateKey = Buffer.alloc(32).fill(4);
+    ephemPrivateKey = Buffer.alloc(32).fill(4);
     ephemPublicKey = eccrypto.getPublic(ephemPrivateKey);
     iv = Buffer.alloc(16).fill(5);
     ciphertext = Buffer.from("bbf3f0e7486b552b0e2ba9c4ca8c4579", "hex");
@@ -179,6 +183,41 @@ describe("Functions: encrypt & decrypt", () => {
       const enc = await eccrypto.encrypt(pubKey, Buffer.from("generated private key"), encOpts);
       const message = await eccrypto.decrypt(privKey, enc);
       expect(message.toString()).toBe("generated private key");
+    });
+  });
+
+  describe("ECIES:encrypt -> decrypt withnoble/ciphers", () => {
+    it("should encrypt and decrypt", async () => {
+      const message = "random message which is very very long and should be encrypted";
+      const nobleEcies = await nobleEncrypt(getPublicKey(privateKey), Buffer.from(message), {
+        iv: iv,
+        ephemPrivateKey: ephemPrivateKey,
+      });
+
+      const convertedEcies = NobleEciesToEcies(nobleEcies);
+
+      const encrypted = await eccrypto.encrypt(publicKey, Buffer.from(message), {
+        iv: iv,
+        ephemPrivateKey: ephemPrivateKey,
+      });
+
+      const wrappedEncrypted = await encrypt(publicKey, Buffer.from(message), {
+        iv: iv,
+        ephemPrivateKey: ephemPrivateKey,
+      });
+
+      expect(convertedEcies).toEqual(encrypted);
+
+      expect(wrappedEncrypted).toEqual(encrypted);
+
+      const decrypted = await nobleDecrypt(privateKey, nobleEcies);
+      expect(bytesToUtf8(decrypted)).toBe(message);
+
+      const decrypted1 = await eccrypto.decrypt(privateKey, convertedEcies);
+      expect(bytesToUtf8(decrypted1)).toBe(message);
+
+      const wrappedDecrypted = await decrypt(privateKey, encrypted);
+      expect(bytesToUtf8(wrappedDecrypted)).toBe(message);
     });
   });
 });
