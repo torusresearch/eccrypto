@@ -33,6 +33,15 @@ export const NobleEciesToEcies = (nobleEcies: NobleEcies): Ecies => {
   };
 };
 
+export const EciesToNobleEcies = (ecies: Ecies): NobleEcies => {
+  return {
+    iv: new Uint8Array(ecies.iv),
+    ephemPublicKey: new Uint8Array(ecies.ephemPublicKey),
+    ciphertext: new Uint8Array(ecies.ciphertext),
+    mac: new Uint8Array(ecies.mac),
+  };
+};
+
 export const hmacSha256Sign = (key: Uint8Array, msg: Uint8Array) => {
   const mac = hmac(sha256, key, msg);
   return mac;
@@ -46,7 +55,7 @@ export function hmacSha256Verify(key: Uint8Array, msg: Uint8Array, sig: Uint8Arr
 export const nobleEncrypt = async function (
   publicKeyTo: Uint8Array,
   msg: Uint8Array,
-  opts?: { iv?: Uint8Array; ephemPrivateKey?: Uint8Array; padding?: boolean }
+  opts?: { iv?: Uint8Array; ephemPrivateKey?: Uint8Array }
 ): Promise<NobleEcies> {
   const ephemPrivateKey = opts?.ephemPrivateKey || utils.randomPrivateKey();
   const ephemPublicKey = getPublicKey(ephemPrivateKey, false);
@@ -105,4 +114,20 @@ export const nobleDecrypt = async function (privateKey: Uint8Array, opts: NobleE
   const decrypted = cipher.decrypt(ciphertext);
 
   return decrypted;
+};
+
+export const encrypt = async function (
+  publicKeyTo: Buffer,
+  msg: Buffer,
+  opts?: { iv?: Buffer; ephemPrivateKey?: Buffer; padding?: boolean }
+): Promise<Ecies> {
+  if (opts?.padding !== undefined) throw new Error("padding opts is not supported");
+  const nobleEcies = await nobleEncrypt(publicKeyTo, msg, opts);
+  return NobleEciesToEcies(nobleEcies);
+};
+
+export const decrypt = async function (privateKey: Buffer, opts: Ecies, padding?: boolean): Promise<Buffer> {
+  const nobleEcies = EciesToNobleEcies(opts);
+  const decrypted = await nobleDecrypt(privateKey, nobleEcies, padding);
+  return Buffer.from(decrypted);
 };

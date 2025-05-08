@@ -1,11 +1,10 @@
 /* eslint-disable import/no-extraneous-dependencies */
 import { bytesToUtf8 } from "@noble/ciphers/utils";
-import { sha512 as nobleSha512 } from "@noble/hashes/sha2";
-import { getPublicKey, getSharedSecret } from "@noble/secp256k1";
+import { getPublicKey } from "@noble/secp256k1";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import * as eccrypto from "../src/index";
-import { nobleDecrypt, NobleEciesToEcies, nobleEncrypt } from "../src/nobleEncryption";
+import { decrypt, encrypt, nobleDecrypt, NobleEciesToEcies, nobleEncrypt } from "../src/nobleEncryption";
 
 describe("Functions: encrypt & decrypt", () => {
   let ephemPublicKey: Buffer;
@@ -202,13 +201,23 @@ describe("Functions: encrypt & decrypt", () => {
         ephemPrivateKey: ephemPrivateKey,
       });
 
+      const wrappedEncrypted = await encrypt(publicKey, Buffer.from(message), {
+        iv: iv,
+        ephemPrivateKey: ephemPrivateKey,
+      });
+
       expect(convertedEcies).toEqual(encrypted);
+
+      expect(wrappedEncrypted).toEqual(encrypted);
 
       const decrypted = await nobleDecrypt(privateKey, nobleEcies);
       expect(bytesToUtf8(decrypted)).toBe(message);
 
       const decrypted1 = await eccrypto.decrypt(privateKey, convertedEcies);
       expect(bytesToUtf8(decrypted1)).toBe(message);
+
+      const wrappedDecrypted = await decrypt(privateKey, encrypted);
+      expect(bytesToUtf8(wrappedDecrypted)).toBe(message);
     });
   });
 });
