@@ -2,9 +2,9 @@ import { ec as EC } from "elliptic";
 
 const ec = new EC("secp256k1");
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
-const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
+let browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const subtle = browserCrypto.subtle || (browserCrypto as any).webkitSubtle;
+let subtle = browserCrypto.subtle || (browserCrypto as any).webkitSubtle;
 
 const EC_GROUP_ORDER = Buffer.from("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", "hex");
 const ZERO32 = Buffer.alloc(32, 0);
@@ -103,8 +103,8 @@ function getAes(op: "encrypt" | "decrypt"): AesFunctionType {
     throw new Error(`Unsupported operation: ${op}`);
   };
 }
-const aesCbcEncrypt = getAes("encrypt");
-const aesCbcDecrypt = getAes("decrypt");
+let aesCbcEncrypt = getAes("encrypt");
+let aesCbcDecrypt = getAes("decrypt");
 
 async function hmacSha256Sign(key: Buffer, msg: Buffer): Promise<Buffer> {
   if (!browserCrypto.createHmac) {
@@ -271,3 +271,11 @@ export const decrypt = async function (privateKey: Buffer, opts: Ecies, padding?
   const msg = await aesCbcDecrypt(opts.iv, Buffer.from(encryptionKey), opts.ciphertext);
   return Buffer.from(new Uint8Array(msg));
 };
+
+export function injectCryptoLib(cryptoLib: unknown) {
+  browserCrypto = cryptoLib;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  subtle = browserCrypto.subtle || (browserCrypto as any).webkitSubtle;
+  aesCbcEncrypt = getAes("encrypt");
+  aesCbcDecrypt = getAes("decrypt");
+}
