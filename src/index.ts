@@ -143,8 +143,7 @@ export const generatePrivate = function (): Buffer {
 
 export const getPublic = function (privateKey: Buffer): Buffer {
   // This function has sync API so we throw an error immediately.
-  assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assertPrivateKey(privateKey);
   // XXX(Kagami): `elliptic.utils.encode` returns array for every
   // encoding except `hex`.
   return Buffer.from(ec.keyFromPrivate(privateKey).getPublic("array"));
@@ -154,9 +153,7 @@ export const getPublic = function (privateKey: Buffer): Buffer {
  * Get compressed version of public key.
  */
 export const getPublicCompressed = function (privateKey: Buffer): Buffer {
-  // jshint ignore:line
-  assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assertPrivateKey(privateKey);
   // See https://github.com/wanderer/secp256k1-node/issues/46
   const compressed = true;
   return Buffer.from(ec.keyFromPrivate(privateKey).getPublic(compressed, "array"));
@@ -168,8 +165,7 @@ export const getPublicCompressed = function (privateKey: Buffer): Buffer {
 // because of the WebCryptoAPI (see
 // <http://caniuse.com/#feat=cryptography>).
 export const sign = async function (privateKey: Buffer, msg: Buffer): Promise<Buffer> {
-  assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
+  assertPrivateKey(privateKey);
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
   return Buffer.from(
@@ -181,14 +177,24 @@ export const sign = async function (privateKey: Buffer, msg: Buffer): Promise<Bu
   );
 };
 
-export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffer): Promise<null> {
-  assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key");
+const assertPublicKey = function (publicKey: Buffer) {
+  assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key: expected 65 or 33 bytes, got " + publicKey.length);
   if (publicKey.length === 65) {
-    assert(publicKey[0] === 4, "Bad public key");
+    assert(publicKey[0] === 4, "Bad public key: expected first byte 4, got " + publicKey[0]);
   }
   if (publicKey.length === 33) {
-    assert(publicKey[0] === 2 || publicKey[0] === 3, "Bad public key");
+    assert(publicKey[0] === 2 || publicKey[0] === 3, "Bad public key: expected first byte 2 or 3, got " + publicKey[0]);
   }
+};
+
+const assertPrivateKey = function (privateKey: Buffer) {
+  assert(Buffer.isBuffer(privateKey), "Bad private key: expected Buffer");
+  assert(privateKey.length === 32, "Bad private key: expected 32 bytes, got " + privateKey.length);
+  assert(isValidPrivateKey(privateKey), "Bad private key: out of range");
+};
+
+export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffer): Promise<null> {
+  assertPublicKey(publicKey);
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
   if (ec.verify(msg, sig, publicKey)) {
@@ -198,17 +204,8 @@ export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffe
 };
 
 export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer, padding?: boolean): Promise<Buffer> {
-  assert(Buffer.isBuffer(privateKeyA), "Bad private key: expected Buffer");
-  assert(Buffer.isBuffer(publicKeyB), "Bad public key: expected Buffer");
-  assert(privateKeyA.length === 32, "Bad private key: expected 32 bytes, got " + privateKeyA.length);
-  assert(isValidPrivateKey(privateKeyA), "Bad private key");
-  assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key: expected 65 or 33 bytes, got " + publicKeyB.length);
-  if (publicKeyB.length === 65) {
-    assert(publicKeyB[0] === 4, "Bad public key: expected first byte 4, got " + publicKeyB[0]);
-  }
-  if (publicKeyB.length === 33) {
-    assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key: expected first byte 2 or 3, got " + publicKeyB[0]);
-  }
+  assertPrivateKey(privateKeyA);
+  assertPublicKey(publicKeyB);
   const keyA = ec.keyFromPrivate(privateKeyA);
   const keyB = ec.keyFromPublic(publicKeyB);
   const Px = keyA.derive(keyB.getPublic()); // BN instance
