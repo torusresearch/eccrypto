@@ -198,16 +198,16 @@ export const verify = async function (publicKey: Buffer, msg: Buffer, sig: Buffe
 };
 
 export const derive = async function (privateKeyA: Buffer, publicKeyB: Buffer, padding?: boolean): Promise<Buffer> {
-  assert(Buffer.isBuffer(privateKeyA), "Bad private key");
-  assert(Buffer.isBuffer(publicKeyB), "Bad public key");
-  assert(privateKeyA.length === 32, "Bad private key");
+  assert(Buffer.isBuffer(privateKeyA), "Bad private key: expected Buffer");
+  assert(Buffer.isBuffer(publicKeyB), "Bad public key: expected Buffer");
+  assert(privateKeyA.length === 32, "Bad private key: expected 32 bytes, got " + privateKeyA.length);
   assert(isValidPrivateKey(privateKeyA), "Bad private key");
-  assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key");
+  assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key: expected 65 or 33 bytes, got " + publicKeyB.length);
   if (publicKeyB.length === 65) {
-    assert(publicKeyB[0] === 4, "Bad public key");
+    assert(publicKeyB[0] === 4, "Bad public key: expected first byte 4, got " + publicKeyB[0]);
   }
   if (publicKeyB.length === 33) {
-    assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
+    assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key: expected first byte 2 or 3, got " + publicKeyB[0]);
   }
   const keyA = ec.keyFromPrivate(privateKeyA);
   const keyB = ec.keyFromPublic(publicKeyB);
