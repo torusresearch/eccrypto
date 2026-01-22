@@ -1,16 +1,32 @@
 <!DOCTYPE html>
+<html>
+
 <head>
-  Eccrypto Test
+  <title>Eccrypto Test</title>
+  <script type="importmap">
+      {
+        "imports": {
+          "elliptic": "https://esm.sh/elliptic@6.6.1"
+        }
+      }
+    </script>
 </head>
+
 <body>
-  <script src="../dist/eccrypto.umd.min.js"></script>
-  <script>
-    (async () => {
-      const priv = Eccrypto.generatePrivate();
-      const pub = Eccrypto.getPublic(priv);
-      const msg = Eccrypto.generatePrivate();
-      const sig = await Eccrypto.sign(priv, msg);
-      Eccrypto.verify(pub, msg, sig).then(console.log).catch(console.error);
-    })();
+  <script type="module">
+    // Buffer polyfill for browser
+    import { Buffer } from 'https://esm.sh/buffer@6.0.3';
+    window.Buffer = Buffer;
+
+    // Now import eccrypto
+    const eccrypto = await import('../dist/lib.esm/index.js');
+
+    const priv = eccrypto.generatePrivate();
+    const pub = eccrypto.getPublic(priv);
+    const msg = eccrypto.generatePrivate();
+    const sig = await eccrypto.sign(priv, msg);
+    eccrypto.verify(pub, msg, sig).then(() => console.log('Signature verified')).catch(console.error);
   </script>
 </body>
+
+</html>
