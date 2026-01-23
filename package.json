@@ -8,7 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "torus-scripts build",
-    "lint": "eslint --fix 'src/**/*.ts'",
+    "lint": "torus-scripts lint -fix",
     "release": "torus-scripts release",
     "test:ci": "npm run test:node && npm run test:browsers",
     "test:node": "vitest run --config test/configs/node.config.mts --coverage",
@@ -41,10 +41,10 @@
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
     "@babel/runtime": "^7.28.6",
-    "@toruslabs/config": "^3.1.0",
-    "@toruslabs/eslint-config-node": "^4.1.4",
-    "@toruslabs/eslint-config-typescript": "^4.1.4",
-    "@toruslabs/torus-scripts": "^7.1.6",
+    "@toruslabs/config": "^4.0.0",
+    "@toruslabs/eslint-config-node": "^5.0.0",
+    "@toruslabs/eslint-config-typescript": "^5.0.0",
+    "@toruslabs/torus-scripts": "^8.0.0",
     "@types/elliptic": "^6.4.18",
     "@vitest/browser-playwright": "^4.0.17",
     "@vitest/coverage-istanbul": "^4.0.17",
@@ -58,8 +58,8 @@
     "esbuild": "^0.25.0"
   },
   "engines": {
-    "node": ">=24.x",
-    "npm": ">=11.x"
+    "node": ">=22.x",
+    "npm": ">=10.x"
   },
   "dependencies": {
     "elliptic": "^6.6.1"
