@@ -4,3 +4,4 @@
 *.swp
 dist/
 .DS_Store
+.eslintcache

@@ -1,7 +1,7 @@
 import { ec as EC } from "elliptic";
 
 const ec = new EC("secp256k1");
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const subtle = browserCrypto.subtle || (browserCrypto as any).webkitSubtle;
