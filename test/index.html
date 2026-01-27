@@ -1,16 +1,44 @@
+<!-- 
+  To run the test, you need to run the following command:
+  npx vite .
+  This will start a development server at http://localhost:5173/
+  then open the browser and go to http://localhost:5173/test/index.html
+  you should see the test result in the console.
+  This is a simple test to verify that the eccrypto library is working in the browser.
+  It will generate a private key, get the public key, sign a message, and verify the signature.
+  It will then log the result to the console.
+  If the signature is verified, it will log "Signature verified" to the console.
+  If the signature is not verified, it will log the error to the console.
+-->
 <!DOCTYPE html>
+<html>
+
 <head>
-  Eccrypto Test
+  <title>Eccrypto Test</title>
+  <script type="importmap">
+      {
+        "imports": {
+          "elliptic": "https://esm.sh/elliptic@6.6.1"
+        }
+      }
+    </script>
 </head>
+
 <body>
-  <script src="../dist/eccrypto.umd.min.js"></script>
-  <script>
-    (async () => {
-      const priv = Eccrypto.generatePrivate();
-      const pub = Eccrypto.getPublic(priv);
-      const msg = Eccrypto.generatePrivate();
-      const sig = await Eccrypto.sign(priv, msg);
-      Eccrypto.verify(pub, msg, sig).then(console.log).catch(console.error);
-    })();
+  <script type="module">
+    // Buffer polyfill for browser
+    import { Buffer } from 'https://esm.sh/buffer@6.0.3';
+    window.Buffer = Buffer;
+
+    // Now import eccrypto
+    const eccrypto = await import('../dist/lib.esm/index.js');
+
+    const priv = eccrypto.generatePrivate();
+    const pub = eccrypto.getPublic(priv);
+    const msg = eccrypto.generatePrivate();
+    const sig = await eccrypto.sign(priv, msg);
+    eccrypto.verify(pub, msg, sig).then(() => console.log('Signature verified')).catch(console.error);
   </script>
 </body>
+
+</html>
