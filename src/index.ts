@@ -6,7 +6,7 @@ const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const subtle = (browserCrypto.subtle || (browserCrypto as any).webkitSubtle) as SubtleCrypto;
 
-const EC_GROUP_ORDER = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
+const SECP256K1_GROUP_ORDER = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
 
 export interface Ecies {
   iv: Uint8Array;
@@ -37,7 +37,7 @@ function isValidPrivateKey(privateKey: Uint8Array): boolean {
   return (
     privateKeyBigInt > 0n &&
     // > 0
-    privateKeyBigInt < EC_GROUP_ORDER
+    privateKeyBigInt < SECP256K1_GROUP_ORDER
   ); // < G
 }
 
@@ -199,16 +199,13 @@ export const derive = async function (privateKeyA: Uint8Array, publicKeyB: Uint8
   assertValidPrivateKey(privateKeyA);
   assertValidPublicKey(publicKeyB);
 
-  // unpad to match previous implementation
-  // elliptic return BN and we return Buffer(BN.toArray())
-  // match by unpadding
+  // Strip leading zeros for backwards compatibility with older versions
+  // that used elliptic's BN.toArray() which didn't include leading zeros.
+  // Use derivePadded() if you need a fixed 32-byte output.
   const sharedSecret = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
   const Px = sharedSecret.subarray(sharedSecret.length - 32);
 
-  let i = 0;
-  while (i < Px.length && Px[i] === 0) {
-    i++;
-  }
+  const i = Px.findIndex((byte) => byte !== 0);
 
   return Px.subarray(i);
 };
