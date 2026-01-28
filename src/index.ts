@@ -213,8 +213,6 @@ export const derive = async function (privateKeyA: Uint8Array, publicKeyB: Uint8
 export const deriveUnpadded = derive;
 
 export const derivePadded = async function (privateKeyA: Uint8Array, publicKeyB: Uint8Array): Promise<Uint8Array> {
-  // assert(Buffer.isBuffer(privateKeyA), "Bad private key");
-  // assert(Buffer.isBuffer(publicKeyB), "Bad public key");
   assertValidPrivateKey(privateKeyA);
   assertValidPublicKey(publicKeyB);
   const Px = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
