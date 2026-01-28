@@ -1,5 +1,5 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { concatBytes, equalBytes } from "@noble/curves/abstract/utils";
+import { concatBytes, equalBytes } from "@noble/curves/utils.js";
 import { beforeAll, beforeEach, describe, expect, it } from "vitest";
 
 import * as ec from "../src/index";

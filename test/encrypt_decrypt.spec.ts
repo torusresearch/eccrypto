@@ -1,8 +1,12 @@
 /* eslint-disable import/no-extraneous-dependencies */
-import { bytesToUtf8, concatBytes, equalBytes, hexToBytes } from "@noble/curves/abstract/utils";
+import { concatBytes, equalBytes, hexToBytes } from "@noble/curves/utils.js";
 import { beforeEach, describe, expect, it } from "vitest";
 
 import * as eccrypto from "../src/index";
+
+const bytesToUtf8 = (bytes: Uint8Array): string => {
+  return new TextDecoder().decode(bytes);
+};
 
 describe("Functions: encrypt & decrypt", () => {
   let ephemPublicKey: Uint8Array;

@@ -61,6 +61,6 @@
     "npm": ">=10.x"
   },
   "dependencies": {
-    "@noble/curves": "^1.8.0"
+    "@noble/curves": "^2.0.1"
   }
 }

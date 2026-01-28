@@ -1,5 +1,5 @@
-import { concatBytes } from "@noble/curves/abstract/utils";
-import { secp256k1 } from "@noble/curves/secp256k1";
+import { concatBytes } from "@noble/curves/utils.js";
+import { secp256k1 } from "@noble/curves/secp256k1.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
@@ -179,8 +179,8 @@ export const sign = async function (privateKey: Uint8Array, msg: Uint8Array): Pr
   assert(isValidPrivateKey(privateKey), "Bad private key");
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
-  const sig = secp256k1.sign(msg, privateKey, { prehash: false });
-  return sig.toDERRawBytes();
+  const sig = secp256k1.sign(msg, privateKey, { prehash: false, format: "der" });
+  return sig;
 };
 
 export const verify = async function (publicKey: Uint8Array, msg: Uint8Array, sig: Uint8Array): Promise<null> {
@@ -193,7 +193,7 @@ export const verify = async function (publicKey: Uint8Array, msg: Uint8Array, si
   }
   assert(msg.length > 0, "Message should not be empty");
   assert(msg.length <= 32, "Message is too long");
-  if (secp256k1.verify(sig, msg, publicKey, { prehash: false })) return null;
+  if (secp256k1.verify(sig, msg, publicKey, { prehash: false, format: "der" })) return null;
   throw new Error("Bad signature");
 };
 
