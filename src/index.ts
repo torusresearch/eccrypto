@@ -1,5 +1,5 @@
-import { concatBytes } from "@noble/curves/utils.js";
 import { secp256k1 } from "@noble/curves/secp256k1.js";
+import { concatBytes } from "@noble/curves/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
@@ -136,6 +136,26 @@ async function hmacSha256Verify(key: Uint8Array, msg: Uint8Array, sig: Uint8Arra
   return equalConstTime(expectedSig, sig);
 }
 
+function assertValidPrivateKey(privateKey: Uint8Array): void {
+  assert(privateKey.length === 32, "Bad private key");
+  assert(isValidPrivateKey(privateKey), "Bad private key");
+}
+
+function assertValidPublicKey(publicKey: Uint8Array): void {
+  assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key");
+  if (publicKey.length === 65) {
+    assert(publicKey[0] === 4, "Bad public key");
+  }
+  if (publicKey.length === 33) {
+    assert(publicKey[0] === 2 || publicKey[0] === 3, "Bad public key");
+  }
+}
+
+function assertValidMessage(msg: Uint8Array): void {
+  assert(msg.length > 0, "Message should not be empty");
+  assert(msg.length <= 32, "Message is too long");
+}
+
 /**
  * Generate a new valid private key. Will use the window.crypto or window.msCrypto as source
  * depending on your browser.
@@ -149,11 +169,7 @@ export const generatePrivate = function (): Uint8Array {
 };
 
 export const getPublic = function (privateKey: Uint8Array): Uint8Array {
-  // This function has sync API so we throw an error immediately.
-  assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
-  // XXX(Kagami): `elliptic.utils.encode` returns array for every
-  // encoding except `hex`.
+  assertValidPrivateKey(privateKey);
   return secp256k1.getPublicKey(privateKey, false);
 };
 
@@ -161,54 +177,27 @@ export const getPublic = function (privateKey: Uint8Array): Uint8Array {
  * Get compressed version of public key.
  */
 export const getPublicCompressed = function (privateKey: Uint8Array): Uint8Array {
-  // jshint ignore:line
-  assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
-  // See https://github.com/wanderer/secp256k1-node/issues/46
-  const compressed = true;
-  return secp256k1.getPublicKey(privateKey, compressed);
+  assertValidPrivateKey(privateKey);
+  return secp256k1.getPublicKey(privateKey);
 };
 
-// NOTE(Kagami): We don't use promise shim in Browser implementation
-// because it's supported natively in new browsers (see
-// <http://caniuse.com/#feat=promises>) and we can use only new browsers
-// because of the WebCryptoAPI (see
-// <http://caniuse.com/#feat=cryptography>).
 export const sign = async function (privateKey: Uint8Array, msg: Uint8Array): Promise<Uint8Array> {
-  assert(privateKey.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKey), "Bad private key");
-  assert(msg.length > 0, "Message should not be empty");
-  assert(msg.length <= 32, "Message is too long");
+  assertValidPrivateKey(privateKey);
+  assertValidMessage(msg);
   const sig = secp256k1.sign(msg, privateKey, { prehash: false, format: "der" });
   return sig;
 };
 
 export const verify = async function (publicKey: Uint8Array, msg: Uint8Array, sig: Uint8Array): Promise<null> {
-  assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key");
-  if (publicKey.length === 65) {
-    assert(publicKey[0] === 4, "Bad public key");
-  }
-  if (publicKey.length === 33) {
-    assert(publicKey[0] === 2 || publicKey[0] === 3, "Bad public key");
-  }
-  assert(msg.length > 0, "Message should not be empty");
-  assert(msg.length <= 32, "Message is too long");
+  assertValidPublicKey(publicKey);
+  assertValidMessage(msg);
   if (secp256k1.verify(sig, msg, publicKey, { prehash: false, format: "der" })) return null;
   throw new Error("Bad signature");
 };
 
 export const derive = async function (privateKeyA: Uint8Array, publicKeyB: Uint8Array): Promise<Uint8Array> {
-  // assert(Buffer.isBuffer(privateKeyA), "Bad private key");
-  // assert(Buffer.isBuffer(publicKeyB), "Bad public key");
-  assert(privateKeyA.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKeyA), "Bad private key");
-  assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key");
-  if (publicKeyB.length === 65) {
-    assert(publicKeyB[0] === 4, "Bad public key");
-  }
-  if (publicKeyB.length === 33) {
-    assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
-  }
+  assertValidPrivateKey(privateKeyA);
+  assertValidPublicKey(publicKeyB);
 
   // unpad to match previous implementation
   // elliptic return BN and we return Buffer(BN.toArray())
@@ -229,15 +218,8 @@ export const deriveUnpadded = derive;
 export const derivePadded = async function (privateKeyA: Uint8Array, publicKeyB: Uint8Array): Promise<Uint8Array> {
   // assert(Buffer.isBuffer(privateKeyA), "Bad private key");
   // assert(Buffer.isBuffer(publicKeyB), "Bad public key");
-  assert(privateKeyA.length === 32, "Bad private key");
-  assert(isValidPrivateKey(privateKeyA), "Bad private key");
-  assert(publicKeyB.length === 65 || publicKeyB.length === 33, "Bad public key");
-  if (publicKeyB.length === 65) {
-    assert(publicKeyB[0] === 4, "Bad public key");
-  }
-  if (publicKeyB.length === 33) {
-    assert(publicKeyB[0] === 2 || publicKeyB[0] === 3, "Bad public key");
-  }
+  assertValidPrivateKey(privateKeyA);
+  assertValidPublicKey(publicKeyB);
   const Px = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
   return Px.subarray(Px.length - 32);
 };
