@@ -45,7 +45,6 @@
     "@toruslabs/eslint-config-node": "^5.0.0",
     "@toruslabs/eslint-config-typescript": "^5.0.0",
     "@toruslabs/torus-scripts": "^8.0.0",
-    "@types/elliptic": "^6.4.18",
     "@vitest/browser-playwright": "^4.0.17",
     "@vitest/coverage-istanbul": "^4.0.17",
     "buffer": "^6.0.3",
@@ -62,6 +61,6 @@
     "npm": ">=10.x"
   },
   "dependencies": {
-    "elliptic": "^6.6.1"
+    "@noble/curves": "^1.8.0"
   }
 }
