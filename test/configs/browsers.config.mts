@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     reporters: "verbose",
+    // Exclude backward compatibility tests - old eccrypto uses Buffer which is not available in browsers
+    exclude: ["**/backward_compatibility.spec.ts", "**/node_modules/**"],
     browser: {
       screenshotFailures: false,
       headless: true,
