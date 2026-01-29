@@ -302,4 +302,25 @@ describe("Backward Compatibility: encrypt/decrypt", () => {
     expect(bytesToHex(encryptedNew.mac)).toBe(bytesToHex(toUint8Array(encryptedOld.mac)));
     expect(bytesToHex(encryptedNew.ephemPublicKey)).toBe(bytesToHex(toUint8Array(encryptedOld.ephemPublicKey)));
   });
+
+  it("should decrypt message encrypted by old library with padding=true", async () => {
+    const privateKey = eccryptoNew.generatePrivate();
+    const publicKey = eccryptoNew.getPublic(privateKey);
+    const msg = new TextEncoder().encode("Hello with padding!");
+
+    // Encrypt with old library using padding=true
+    const encrypted = await eccryptoOld.encrypt(Buffer.from(publicKey), Buffer.from(msg), {
+      padding: true,
+    });
+
+    // Decrypt with new library - should handle padded encryption
+    const decrypted = await eccryptoNew.decrypt(privateKey, {
+      iv: toUint8Array(encrypted.iv),
+      ephemPublicKey: toUint8Array(encrypted.ephemPublicKey),
+      ciphertext: toUint8Array(encrypted.ciphertext),
+      mac: toUint8Array(encrypted.mac),
+    });
+
+    expect(new TextDecoder().decode(decrypted)).toBe("Hello with padding!");
+  });
 });
