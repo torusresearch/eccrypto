@@ -251,5 +251,5 @@ export const decrypt = async function (privateKey: Uint8Array, opts: Ecies, _pad
     throw new Error("bad MAC after trying padded");
   }
   const msg = await aesCbcDecrypt(opts.iv, encryptionKey, opts.ciphertext);
-  return new Uint8Array(msg);
+  return msg;
 };
