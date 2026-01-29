@@ -120,13 +120,8 @@ function assertValidPrivateKey(privateKey: Uint8Array): void {
 }
 
 function assertValidPublicKey(publicKey: Uint8Array): void {
-  assert(publicKey.length === 65 || publicKey.length === 33, "Bad public key");
-  if (publicKey.length === 65) {
-    assert(publicKey[0] === 4, "Bad public key");
-  }
-  if (publicKey.length === 33) {
-    assert(publicKey[0] === 2 || publicKey[0] === 3, "Bad public key");
-  }
+  const isValid = secp256k1.utils.isValidPublicKey(publicKey, true) || secp256k1.utils.isValidPublicKey(publicKey, false);
+  assert(isValid, "Bad public key");
 }
 
 function assertValidMessage(msg: Uint8Array): void {
