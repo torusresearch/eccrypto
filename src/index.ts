@@ -176,18 +176,25 @@ export const verify = async function (publicKey: Uint8Array, msg: Uint8Array, si
   throw new Error("Bad signature");
 };
 
-export const derive = async function (privateKeyA: Uint8Array, publicKeyB: Uint8Array): Promise<Uint8Array> {
+export const derive = async function (
+  privateKeyA: Uint8Array,
+  publicKeyB: Uint8Array,
+  padding?: boolean,
+): Promise<Uint8Array> {
   assertValidPrivateKey(privateKeyA);
   assertValidPublicKey(publicKeyB);
 
-  // Strip leading zeros for backwards compatibility with older versions
-  // that used elliptic's BN.toArray() which didn't include leading zeros.
-  // Use derivePadded() if you need a fixed 32-byte output.
   const sharedSecret = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
   const Px = sharedSecret.subarray(sharedSecret.length - 32);
 
-  const i = Px.findIndex((byte) => byte !== 0);
+  // If padding is true, return fixed 32-byte result
+  if (padding === true) {
+    return Px;
+  }
 
+  // Default: strip leading zeros for backwards compatibility with older versions
+  // that used elliptic's BN.toArray() which didn't include leading zeros.
+  const i = Px.findIndex((byte) => byte !== 0);
   return Px.subarray(i);
 };
 
