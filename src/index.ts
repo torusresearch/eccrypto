@@ -1,5 +1,5 @@
 import { secp256k1 } from "@noble/curves/secp256k1.js";
-import { concatBytes } from "@noble/curves/utils.js";
+import { concatBytes, equalBytes } from "@noble/curves/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
@@ -21,7 +21,7 @@ function assert(condition: boolean, message: string) {
   }
 }
 
-export function uint8ArrayToBigInt(arr: Uint8Array): bigint {
+function uint8ArrayToBigInt(arr: Uint8Array): bigint {
   let result = 0n;
   for (let i = 0; i < arr.length; i++) {
     result = (result << 8n) | BigInt(arr[i]);
@@ -39,19 +39,6 @@ function isValidPrivateKey(privateKey: Uint8Array): boolean {
     // > 0
     privateKeyBigInt < SECP256K1_GROUP_ORDER
   ); // < G
-}
-
-// Compare two buffers in constant time to prevent timing attacks.
-function equalConstTime(b1: Uint8Array, b2: Uint8Array): boolean {
-  if (b1.length !== b2.length) {
-    return false;
-  }
-  let res = 0;
-  for (let i = 0; i < b1.length; i++) {
-    res |= b1[i] ^ b2[i];
-  }
-
-  return res === 0;
 }
 
 /* This must check if we're in the browser or
@@ -133,7 +120,7 @@ async function hmacSha256Sign(key: Uint8Array, msg: Uint8Array): Promise<Uint8Ar
 
 async function hmacSha256Verify(key: Uint8Array, msg: Uint8Array, sig: Uint8Array): Promise<boolean> {
   const expectedSig = await hmacSha256Sign(key, msg);
-  return equalConstTime(expectedSig, sig);
+  return equalBytes(expectedSig, sig);
 }
 
 function assertValidPrivateKey(privateKey: Uint8Array): void {
@@ -184,7 +171,10 @@ export const getPublicCompressed = function (privateKey: Uint8Array): Uint8Array
 export const sign = async function (privateKey: Uint8Array, msg: Uint8Array): Promise<Uint8Array> {
   assertValidPrivateKey(privateKey);
   assertValidMessage(msg);
-  const sig = secp256k1.sign(msg, privateKey, { prehash: false, format: "der" });
+  const sig = secp256k1.sign(msg, privateKey, {
+    prehash: false,
+    format: "der",
+  });
   return sig;
 };
 
@@ -237,8 +227,7 @@ export const encrypt = async function (
   const iv = opts.iv || randomBytes(16);
   const encryptionKey = hash.slice(0, 32);
   const macKey = hash.slice(32);
-  const data = await aesCbcEncrypt(iv, encryptionKey, msg);
-  const ciphertext = data;
+  const ciphertext = await aesCbcEncrypt(iv, encryptionKey, msg);
   const dataToMac = concatBytes(iv, ephemPublicKey, ciphertext);
   const mac = await hmacSha256Sign(macKey, dataToMac);
   return {
