@@ -1,5 +1,5 @@
 import { secp256k1 } from "@noble/curves/secp256k1.js";
-import { concatBytes, equalBytes } from "@noble/curves/utils.js";
+import { bytesToNumberBE, concatBytes, equalBytes } from "@noble/curves/utils.js";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
@@ -21,19 +21,11 @@ function assert(condition: boolean, message: string) {
   }
 }
 
-function uint8ArrayToBigInt(arr: Uint8Array): bigint {
-  let result = 0n;
-  for (let i = 0; i < arr.length; i++) {
-    result = (result << 8n) | BigInt(arr[i]);
-  }
-  return result;
-}
-
 function isValidPrivateKey(privateKey: Uint8Array): boolean {
   if (privateKey.length !== 32) {
     return false;
   }
-  const privateKeyBigInt = uint8ArrayToBigInt(privateKey);
+  const privateKeyBigInt = bytesToNumberBE(privateKey);
   return (
     privateKeyBigInt > 0n &&
     // > 0
@@ -124,7 +116,6 @@ async function hmacSha256Verify(key: Uint8Array, msg: Uint8Array, sig: Uint8Arra
 }
 
 function assertValidPrivateKey(privateKey: Uint8Array): void {
-  assert(privateKey.length === 32, "Bad private key");
   assert(isValidPrivateKey(privateKey), "Bad private key");
 }
 
