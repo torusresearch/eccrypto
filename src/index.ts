@@ -179,7 +179,7 @@ export const derive = async function (privateKeyA: Uint8Array, publicKeyB: Uint8
   // that used elliptic's BN.toArray() which didn't include leading zeros.
   // Use derivePadded() if you need a fixed 32-byte output.
   const sharedSecret = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
-  const Px = sharedSecret.subarray(sharedSecret.length - 32);
+  const Px = sharedSecret.subarray(1);
 
   const i = Px.findIndex((byte) => byte !== 0);
 
@@ -191,8 +191,8 @@ export const deriveUnpadded = derive;
 export const derivePadded = async function (privateKeyA: Uint8Array, publicKeyB: Uint8Array): Promise<Uint8Array> {
   assertValidPrivateKey(privateKeyA);
   assertValidPublicKey(publicKeyB);
-  const Px = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
-  return Px.subarray(Px.length - 32);
+  const sharedSecret = secp256k1.getSharedSecret(privateKeyA, publicKeyB);
+  return sharedSecret.subarray(1);
 };
 
 export const encrypt = async function (
