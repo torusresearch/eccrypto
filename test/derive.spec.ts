@@ -45,9 +45,10 @@ describe("Functions: derive & derivePadded", () => {
       await expect(ec.derive(privateKeyA, concatBytes(new Uint8Array([3]), compressedPublicKeyB))).rejects.toThrow("Bad public key");
     });
 
-    it("should return a 32-byte Uint8Array", async () => {
+    it("should return a Uint8Array with length <= 32 (leading zeros stripped)", async () => {
       const derived = await ec.derive(privateKeyA, publicKeyB);
-      expect(derived.length).toBe(32);
+      expect(derived.length).toBeLessThanOrEqual(32);
+      expect(derived.length).toBeGreaterThan(0);
     });
   });
 
