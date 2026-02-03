@@ -198,9 +198,10 @@ export const derivePadded = async function (privateKeyA: Uint8Array, publicKeyB:
 export const encrypt = async function (
   publicKeyTo: Uint8Array,
   msg: Uint8Array,
-  opts?: { iv?: Uint8Array; ephemPrivateKey?: Uint8Array }
+  opts?: { iv?: Uint8Array; ephemPrivateKey?: Uint8Array; padding?: boolean }
 ): Promise<Ecies> {
   opts = opts || {};
+  const padding = opts.padding ?? true;
 
   let ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
   // There is a very unlikely possibility that it is not a valid key
@@ -208,7 +209,8 @@ export const encrypt = async function (
     ephemPrivateKey = opts.ephemPrivateKey || randomBytes(32);
   }
   const ephemPublicKey = getPublic(ephemPrivateKey);
-  const Px = await deriveUnpadded(ephemPrivateKey, publicKeyTo);
+  const deriveLocal = padding ? derivePadded : deriveUnpadded;
+  const Px = await deriveLocal(ephemPrivateKey, publicKeyTo);
   const hash = await sha512(Px);
   const iv = opts.iv || randomBytes(16);
   const encryptionKey = hash.slice(0, 32);
