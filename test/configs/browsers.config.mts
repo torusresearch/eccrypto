@@ -3,15 +3,15 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    setupFiles: ["./test/configs/browserSetup.ts"],
     environment: "jsdom",
     reporters: "verbose",
+    // Exclude backward compatibility tests - old eccrypto uses Buffer which is not available in browsers
+    exclude: ["**/backward_compatibility.spec.ts", "**/node_modules/**"],
     browser: {
       screenshotFailures: false,
       headless: true,
       provider: playwright(),
       enabled: true,
-      testerHtmlPath: "./test/test.html",
       instances: [
         { name: "Chrome", browser: "chromium" },
         { name: "Firefox", browser: "firefox" },
