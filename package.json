@@ -11,6 +11,9 @@
     "lint": "vp lint",
     "check": "vp check",
     "typecheck": "tsc --noEmit",
+    "changeset": "changeset",
+    "version-packages": "changeset version && npm install --package-lock-only --ignore-scripts",
+    "release-packages": "changeset publish",
     "test:ci": "npm run test:node && npm run test:browsers",
     "test:node": "vp test run --config test/configs/node.config.mts --coverage",
     "test:browsers": "vp test run --config test/configs/browsers.config.mts --coverage"
@@ -41,6 +44,7 @@
   },
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
+    "@changesets/cli": "^3.0.3",
     "@lavamoat/harden": "^0.8.1",
     "@toruslabs/config": "^5.0.0",
     "@toruslabs/oxlint-config-typescript": "^1.1.0",
