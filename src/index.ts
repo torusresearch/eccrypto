@@ -1,7 +1,7 @@
 import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { bytesToNumberBE, concatBytes, equalBytes } from "@noble/curves/utils.js";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
 const subtle = (browserCrypto.subtle || (browserCrypto as any).webkitSubtle) as SubtleCrypto;
