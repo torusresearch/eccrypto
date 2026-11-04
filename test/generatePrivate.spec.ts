@@ -1,5 +1,4 @@
-/* eslint-disable import/no-extraneous-dependencies */
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import * as ec from "../src/index";
 

@@ -4,15 +4,16 @@
   "description": "JavaScript Elliptic curve cryptography library, includes fix to browser.js so that encrypt/decrypt works",
   "main": "./dist/lib.cjs/index.js",
   "module": "./dist/lib.esm/index.js",
-  "types": "./dist/lib.cjs/types/index.d.ts",
+  "types": "./dist/lib.cjs/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "torus-scripts build",
-    "lint": "torus-scripts lint --fix",
-    "release": "torus-scripts release",
+    "build": "vp pack",
+    "lint": "vp lint",
+    "check": "vp check",
+    "typecheck": "tsc --noEmit",
     "test:ci": "npm run test:node && npm run test:browsers",
-    "test:node": "vitest run --config test/configs/node.config.mts --coverage",
-    "test:browsers": "vitest run --config test/configs/browsers.config.mts --coverage"
+    "test:node": "vp test run --config test/configs/node.config.mts --coverage",
+    "test:browsers": "vp test run --config test/configs/browsers.config.mts --coverage"
   },
   "repository": {
     "type": "git",
@@ -40,24 +41,25 @@
   },
   "homepage": "https://github.com/torusresearch/eccrypto",
   "devDependencies": {
-    "@babel/runtime": "^7.28.6",
     "@lavamoat/harden": "^0.8.1",
-    "@toruslabs/config": "^4.0.0",
-    "@toruslabs/eslint-config-node": "^5.0.0",
-    "@toruslabs/eslint-config-typescript": "^5.0.0",
-    "@toruslabs/torus-scripts": "^8.0.0",
+    "@toruslabs/config": "^5.0.0",
+    "@toruslabs/oxlint-config-typescript": "^1.1.0",
+    "@toruslabs/torus-scripts": "9.0.1",
     "@types/node": "^25.1.0",
-    "@vitest/browser-playwright": "^4.0.17",
-    "@vitest/coverage-istanbul": "^4.0.17",
+    "@vitest/browser-playwright": "5.1.0",
+    "@vitest/coverage-istanbul": "5.1.0",
     "buffer": "^6.0.3",
     "eccrypto-old": "npm:@toruslabs/eccrypto@6.2.0",
-    "eslint": "^9.39.2",
     "playwright": "^1.57.0",
-    "typescript": "^5.9.3",
-    "vitest": "^4.0.17"
+    "typescript": "^7",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.5.0",
+    "vite-plus": "1.5.0",
+    "vitest": "5.1.0"
   },
   "overrides": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "vite": "npm:@voidzero-dev/vite-plus-core@1.5.0",
+    "vitest": "5.1.0"
   },
   "engines": {
     "node": ">=24.22.0",
@@ -71,10 +73,7 @@
     }
   },
   "allowScripts": {
-    "esbuild@0.25.12": false,
-    "fsevents@2.3.2": false,
-    "fsevents@2.3.3": false,
-    "unrs-resolver@1.11.1": false
+    "fsevents@2.3.3": false
   },
   "dependencies": {
     "@noble/curves": "^2.0.1"

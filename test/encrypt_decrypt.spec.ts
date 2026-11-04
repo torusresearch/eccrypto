@@ -1,6 +1,5 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { concatBytes, equalBytes, hexToBytes } from "@noble/curves/utils.js";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import * as eccrypto from "../src/index";
 
@@ -93,19 +92,19 @@ describe("Functions: encrypt & decrypt", () => {
 
     it("should reject promise on bad IV when decrypting", async () => {
       const enc = await eccrypto.encrypt(publicKey, new TextEncoder().encode("test"), encOpts);
-      enc.iv[0] ^= 1;
+      enc.iv[0] = (enc.iv[0] ?? 0) ^ 1;
       await expect(eccrypto.decrypt(privateKey, enc)).rejects.toThrow();
     });
 
     it("should reject promise on bad R when decrypting", async () => {
       const enc = await eccrypto.encrypt(publicKey, new TextEncoder().encode("test"), encOpts);
-      enc.ephemPublicKey[0] ^= 1;
+      enc.ephemPublicKey[0] = (enc.ephemPublicKey[0] ?? 0) ^ 1;
       await expect(eccrypto.decrypt(privateKey, enc)).rejects.toThrow();
     });
 
     it("should reject promise on bad ciphertext when decrypting", async () => {
       const enc = await eccrypto.encrypt(publicKey, new TextEncoder().encode("test"), encOpts);
-      enc.ciphertext[0] ^= 1;
+      enc.ciphertext[0] = (enc.ciphertext[0] ?? 0) ^ 1;
       await expect(eccrypto.decrypt(privateKey, enc)).rejects.toThrow();
     });
 
@@ -115,7 +114,7 @@ describe("Functions: encrypt & decrypt", () => {
       enc.mac = mac.slice(1);
       await expect(eccrypto.decrypt(privateKey, enc)).rejects.toThrow();
       enc.mac = origMac;
-      enc.mac[10] ^= 1;
+      enc.mac[10] = (enc.mac[10] ?? 0) ^ 1;
       await expect(eccrypto.decrypt(privateKey, enc)).rejects.toThrow();
     });
 

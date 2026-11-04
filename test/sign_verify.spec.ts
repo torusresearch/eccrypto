@@ -1,6 +1,5 @@
-/* eslint-disable import/no-extraneous-dependencies */
 import { bytesToHex, concatBytes, hexToBytes } from "@noble/curves/utils.js";
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vite-plus/test";
 
 import * as ec from "../src/index";
 // msgString is the sha256 hash of "test"

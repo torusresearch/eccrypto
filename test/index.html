@@ -10,35 +10,36 @@
   If the signature is verified, it will log "Signature verified" to the console.
   If the signature is not verified, it will log the error to the console.
 -->
-<!DOCTYPE html>
+<!doctype html>
 <html>
-
-<head>
-  <title>Eccrypto Test</title>
-  <script type="importmap">
+  <head>
+    <title>Eccrypto Test</title>
+    <script type="importmap">
       {
         "imports": {
           "elliptic": "https://esm.sh/elliptic@6.6.1"
         }
       }
     </script>
-</head>
+  </head>
 
-<body>
-  <script type="module">
-    // Buffer polyfill for browser
-    import { Buffer } from 'https://esm.sh/buffer@6.0.3';
-    window.Buffer = Buffer;
+  <body>
+    <script type="module">
+      // Buffer polyfill for browser
+      import { Buffer } from "https://esm.sh/buffer@6.0.3";
+      window.Buffer = Buffer;
 
-    // Now import eccrypto
-    const eccrypto = await import('../dist/lib.esm/index.js');
+      // Now import eccrypto
+      const eccrypto = await import("../dist/lib.esm/index.js");
 
-    const priv = eccrypto.generatePrivate();
-    const pub = eccrypto.getPublic(priv);
-    const msg = eccrypto.generatePrivate();
-    const sig = await eccrypto.sign(priv, msg);
-    eccrypto.verify(pub, msg, sig).then(() => console.log('Signature verified')).catch(console.error);
-  </script>
-</body>
-
+      const priv = eccrypto.generatePrivate();
+      const pub = eccrypto.getPublic(priv);
+      const msg = eccrypto.generatePrivate();
+      const sig = await eccrypto.sign(priv, msg);
+      eccrypto
+        .verify(pub, msg, sig)
+        .then(() => console.log("Signature verified"))
+        .catch(console.error);
+    </script>
+  </body>
 </html>
