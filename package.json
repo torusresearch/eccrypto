@@ -49,7 +49,7 @@
     "@toruslabs/config": "^5.0.0",
     "@toruslabs/oxlint-config-typescript": "^1.1.0",
     "@toruslabs/torus-scripts": "9.0.1",
-    "@types/node": "^25.1.0",
+    "@types/node": "^26.6.6",
     "@vitest/browser-playwright": "5.1.0",
     "@vitest/coverage-istanbul": "5.1.0",
     "buffer": "^6.0.3",
