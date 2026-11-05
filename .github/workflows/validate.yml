@@ -39,7 +39,10 @@ jobs:
       - name: Run tests
         run: npm run test:ci
       - name: Check release notes
-        if: github.event_name == 'pull_request' && !startsWith(github.head_ref, 'changeset-release/')
+        if: |
+          github.event_name == 'pull_request' &&
+          !startsWith(github.head_ref, 'changeset-release/') &&
+          !startsWith(github.head_ref, 'dependabot/')
         env:
           BASE_REF: ${{ github.base_ref }}
         run: |
