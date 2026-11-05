@@ -20,14 +20,6 @@ jobs:
       security-events: write
     with:
       scanner-ref: becb242930b3cc271c26da0280050db9c157e291 # v2.1.1
-      # Default setup already analyzes these languages. This scanner uploads
-      # CodeQL via advanced setup, which GitHub rejects while default setup is
-      # enabled, and a rejected upload fails the job. Semgrep and zizmor still run.
-      languages-config: |
-        [
-          {"language": "javascript-typescript", "ignore": true},
-          {"language": "actions", "ignore": true}
-        ]
       paths-ignored: |
         **/node_modules/**
         **/dist/**
