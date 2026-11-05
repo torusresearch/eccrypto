@@ -77,6 +77,6 @@
     "fsevents@2.3.3": false
   },
   "dependencies": {
-    "@noble/curves": "^2.0.1"
+    "@noble/curves": "^2.4.0"
   }
 }
