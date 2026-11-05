@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
       - name: Check dependency hardening
-        run: npx --no-install harden check --package-manager npm
+        run: npm exec --no -- harden check --package-manager npm
       - name: Check source
         run: npm run check
       - name: Build packages
@@ -35,7 +35,7 @@ jobs:
       - name: Check TypeScript projects
         run: npm run typecheck
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npm exec -- playwright install --with-deps
       - name: Run tests
         run: npm run test:ci
       - name: Check release notes
