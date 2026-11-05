@@ -1,10 +1,32 @@
 import { secp256k1 } from "@noble/curves/secp256k1.js";
 import { bytesToNumberBE, concatBytes, equalBytes } from "@noble/curves/utils.js";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
-const browserCrypto = globalThis.crypto || (globalThis as any).msCrypto || {};
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, n/no-unsupported-features/node-builtins
-const subtle = (browserCrypto.subtle || (browserCrypto as any).webkitSubtle) as SubtleCrypto;
+type ByteCipher = {
+  update: (data: Uint8Array) => Uint8Array;
+  final: () => Uint8Array;
+};
+
+type NodeCryptoLike = {
+  randomBytes?: (size: number) => Uint8Array;
+  getRandomValues?: (array: Uint8Array) => Uint8Array;
+  subtle?: SubtleCrypto;
+  webkitSubtle?: SubtleCrypto;
+  createHash?: (algorithm: string) => {
+    update: (msg: Uint8Array) => { digest: () => Uint8Array };
+  };
+  createCipheriv?: (algorithm: string, key: Uint8Array, iv: Uint8Array) => ByteCipher;
+  createDecipheriv?: (algorithm: string, key: Uint8Array, iv: Uint8Array) => ByteCipher;
+  createHmac?: (
+    algorithm: string,
+    key: Uint8Array
+  ) => {
+    update: (msg: Uint8Array) => void;
+    digest: () => Uint8Array;
+  };
+};
+
+const browserCrypto = (globalThis.crypto || (globalThis as { msCrypto?: Crypto }).msCrypto || {}) as NodeCryptoLike;
+const subtle = (browserCrypto.subtle || browserCrypto.webkitSubtle) as SubtleCrypto;
 
 const SECP256K1_GROUP_ORDER = BigInt("0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141");
 
@@ -37,7 +59,10 @@ function isValidPrivateKey(privateKey: Uint8Array): boolean {
 not, since the functions are different and does
 not convert using browserify */
 function randomBytes(size: number): Uint8Array {
-  if (typeof browserCrypto.getRandomValues === "undefined") {
+  if (typeof browserCrypto.getRandomValues !== "function") {
+    if (typeof browserCrypto.randomBytes !== "function") {
+      throw new Error("No random number generator available");
+    }
     return browserCrypto.randomBytes(size);
   }
   const arr = new Uint8Array(size);
@@ -46,14 +71,12 @@ function randomBytes(size: number): Uint8Array {
 }
 
 async function sha512(msg: Uint8Array): Promise<Uint8Array> {
-  if (!browserCrypto.createHash) {
+  if (typeof browserCrypto.createHash !== "function") {
     const hash = await subtle.digest("SHA-512", msg as BufferSource);
-    const result = new Uint8Array(hash);
-    return result;
+    return new Uint8Array(hash);
   }
   const hash = browserCrypto.createHash("sha512");
-  const result = hash.update(msg).digest();
-  return new Uint8Array(result);
+  return new Uint8Array(hash.update(msg).digest());
 }
 
 type AesFunctionType = (iv: Uint8Array, key: Uint8Array, data: Uint8Array) => Promise<Uint8Array>;
@@ -72,14 +95,14 @@ function getAes(op: "encrypt" | "decrypt"): AesFunctionType {
       // encrypt and decrypt ops are not implemented in react-native-quick-crypto yet.
       const result = await subtle[op](encAlgorithm, cryptoKey, data as BufferSource);
       return new Uint8Array(result);
-    } else if (op === "encrypt" && browserCrypto.createCipheriv) {
+    } else if (op === "encrypt" && typeof browserCrypto.createCipheriv === "function") {
       // This is available if crypto is polyfilled in react native environment
       const cipher = browserCrypto.createCipheriv("aes-256-cbc", key, iv);
       const firstChunk = cipher.update(data);
       const secondChunk = cipher.final();
 
       return concatBytes(firstChunk, secondChunk);
-    } else if (op === "decrypt" && browserCrypto.createDecipheriv) {
+    } else if (op === "decrypt" && typeof browserCrypto.createDecipheriv === "function") {
       const decipher = browserCrypto.createDecipheriv("aes-256-cbc", key, iv);
       const firstChunk = decipher.update(data);
       const secondChunk = decipher.final();
@@ -92,7 +115,7 @@ const aesCbcEncrypt = getAes("encrypt");
 const aesCbcDecrypt = getAes("decrypt");
 
 async function hmacSha256Sign(key: Uint8Array, msg: Uint8Array): Promise<Uint8Array> {
-  if (!browserCrypto.createHmac) {
+  if (typeof browserCrypto.createHmac !== "function") {
     const importAlgorithm = {
       name: "HMAC",
       hash: {

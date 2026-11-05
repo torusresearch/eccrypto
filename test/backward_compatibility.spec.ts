@@ -1,16 +1,16 @@
 /**
  * Backward Compatibility Tests
  *
- * These tests ensure that the new @noble/curves implementation produces
+ * These tests ensure that the new \@noble/curves implementation produces
  * the same results as the old elliptic-based implementation.
  *
- * Uses the old @toruslabs/eccrypto@5.0.4 (aliased as "eccrypto-old")
+ * Uses the old \@toruslabs/eccrypto\@5.0.4 (aliased as "eccrypto-old")
  * which was the last version using the elliptic library.
  */
 import { bytesToHex, hexToBytes } from "@noble/curves/utils.js";
-import { describe, expect, it } from "vitest";
-
 import * as eccryptoOld from "eccrypto-old";
+import { describe, expect, it } from "vite-plus/test";
+
 import * as eccryptoNew from "../src/index";
 
 function toUint8Array(buf: Buffer | Uint8Array): Uint8Array {
